@@ -1,0 +1,12 @@
+# Files being edited
+*~
+
+# Make and build files
+*.o
+*.h.gch
+molecular-sim
+
+# SFML files
+include/SFML/*
+*.dylib
+lib/pkgconfig/*
