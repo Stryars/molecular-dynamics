@@ -1,17 +1,30 @@
 // Copyright 2018 <Samuel Diebolt>
 
-#include <cstdio>
+#include <iostream>
+#include <sstream>
 
 #include "SFML/Graphics.hpp"
-#include "game.h"
+#include "main.h"
+#include "simulation.h"
+#include "particle.h"
 
 int main(int argc, char* argv[]) {
-  if (argc != 1) {
-    printf("No argument needed for %s.\n", argv[0]);
+  if (argc != 2) {
+    printf("Please enter the number of particles to simulate.\n");
+    return 1;
   }
 
-  Game game;
-  game.Run();
+  std::istringstream ss {argv[1]};
+  int n {0};
+  if (!(ss >> n)) {
+    std::cerr << "Invalid number " << argv[1] << '\n';
+    return 1;
+  }
+
+  std::vector<Particle> particles(n, Particle());
+
+  Simulation simulation;
+  simulation.Run();
 
   return 0;
 }

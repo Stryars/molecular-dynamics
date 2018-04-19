@@ -14,17 +14,17 @@ EXEC = $(B_DIR)/$(PROG)
 
 LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 
-_DEPS = game.h
+_DEPS = main.h simulation.h particle.h event.h
 DEPS = $(patsubst %,$(I_DIR)/%,$(_DEPS))
 
-_OBJS = game.o main.o
+_OBJS = main.o simulation.o particle.o event.o
 OBJS = $(patsubst %,$(O_DIR)/%,$(_OBJS))
 
 $(O_DIR)/%.o: %.cc $(DEPS)
 	$(CC) -c -o $@ $< $(CPPFLAGS)
 
 main: $(OBJS)
-	$(CC) -o $(EXEC) $^ $(CPPmFLAGS) $(LIBS)
+	$(CC) -o $(EXEC) $^ $(CPPFLAGS) $(LIBS)
 
 .PHONY: clean
 

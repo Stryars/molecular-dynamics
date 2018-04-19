@@ -7,9 +7,9 @@
 #define WIDTH 800
 #define HEIGHT 800
 
-class Game {
+class Simulation {
 public:
-  Game();
+  Simulation();
   void Run();
 
 private:
@@ -17,5 +17,5 @@ private:
   void Update();
   void Render();
 
-  sf::RenderWindow window;
+  sf::RenderWindow window_;
 };
