@@ -13,6 +13,9 @@ public:
   Particle(double rx, double ry, double vx, double vy, const double radius,
     const double mass, sf::Color color);
 
+  // Initializes a copy of a particle.
+  Particle(Particle* p);
+
   // Initializes a particle with random position and velocity.
   Particle();
 

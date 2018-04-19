@@ -16,6 +16,17 @@ Particle::Particle(double rx, double ry, double vx, double vy,
   circle_.setPosition(rx_, ry_);
 }
 
+// Initializes a copy of a particle.
+Particle::Particle(Particle* p) :
+    rx_ {p->rx_}, ry_ {p->ry_},
+    vx_ {p->vx_}, vy_{p->vy_},
+    radius_ {p->radius_}, mass_ {p->mass_},
+    color_ {p->color_} {
+  circle_.setRadius(radius_);
+  circle_.setFillColor(color_);
+  circle_.setPosition(rx_, ry_);
+}
+
 // Initializes a particle with random position and velocity.
 Particle::Particle() :
     rx_ {0.5}, ry_ {0.5},
@@ -83,11 +94,9 @@ double Particle::TimeToHit(Particle* that) {
 double Particle::TimeToHitVerticalWall() {
   if (this->vx_ > 0) {
     return (1.0 - this->rx_ - this->radius_) / this->vx_;
-  }
-  else if (this->vx_ < 0) {
+  } else if (this->vx_ < 0) {
     return (this->radius_ - this->rx_) / this->vx_;
-  }
-  else {
+  } else {
     return INFINITY;
   }
 }
@@ -97,11 +106,9 @@ double Particle::TimeToHitVerticalWall() {
 double Particle::TimeToHitHorizontalWall() {
   if (this->vy_ > 0) {
     return (1.0 - this->ry_ - this->radius_) / this->vy_;
-  }
-  else if (this->vy_ < 0) {
+  } else if (this->vy_ < 0) {
     return (this->radius_ - this->ry_) / this->vy_;
-  }
-  else {
+  } else {
     return INFINITY;
   }
 }
