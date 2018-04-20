@@ -24,7 +24,7 @@ public:
   void Move(double dt);
 
   // Draws this particle on the SFML window.
-  void Draw(sf::RenderWindow window);
+  void Draw(sf::RenderWindow* window);
 
   // Returns the number of collisions involving this particle with either
   // walls or other particles.
@@ -51,7 +51,7 @@ public:
 
   // Updates the velocity of this particle upon collision with a
   // horizontal wall.
-  void BounceOffHorizontalmWall();
+  void BounceOffHorizontalWall();
 
   // Returns the kinetic energy of this particle.
   double KineticEnergy();

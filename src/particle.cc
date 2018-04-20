@@ -29,9 +29,9 @@ Particle::Particle(Particle* p) :
 
 // Initializes a particle with random position and velocity.
 Particle::Particle() :
-    rx_ {0.5}, ry_ {0.5},
-    vx_ {0}, vy_{0.005},
-    radius_ {0.01}, mass_ {0.5},
+    rx_ {300}, ry_ {300},
+    vx_ {10}, vy_{10},
+    radius_ {1}, mass_ {10},
     color_ {sf::Color::Black} {
   circle_.setRadius(radius_);
   circle_.setFillColor(color_);
@@ -46,8 +46,8 @@ void Particle::Move(double dt) {
 }
 
 // Draws this particle on the SFML window.
-void Particle::Draw(sf::RenderWindow window) {
-  window.draw(this->circle_);
+void Particle::Draw(sf::RenderWindow* window) {
+  window->draw(this->circle_);
 }
 
 // Returns the number of collisions involving this particle with either
@@ -116,6 +116,7 @@ double Particle::TimeToHitHorizontalWall() {
 // Updates the velocity of this particle and the specified particle according
 // to the laws of elastic collision.
 void Particle::BounceOff(Particle* that) {
+  printf("BounceOff\n");
   double dx {that->rx_ - this->rx_};
   double dy {that->ry_ - this->ry_};
   double dvx {that->vx_ - this->vx_};
@@ -148,13 +149,15 @@ void Particle::BounceOff(Particle* that) {
 
 // Updates the velocity of this particle upon collision with a vertical wall.
 void Particle::BounceOffVerticalWall() {
+  printf("BounceOffVerticalWall\n");
   this->vx_ = -this->vx_;
   this->collisions_count_++;
 }
 
 // Updates the velocity of this particle upon collision with a
 // horizontal wall.
-void Particle::BounceOffHorizontalmWall() {
+void Particle::BounceOffHorizontalWall() {
+  printf("BounceOffHorizontalWall\n");
   this->vy_ = -this->vy_;
   this->collisions_count_++;
 }

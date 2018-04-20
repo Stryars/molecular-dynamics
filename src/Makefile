@@ -14,10 +14,10 @@ EXEC = $(B_DIR)/$(PROG)
 
 LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 
-_DEPS = main.h simulation.h particle.h event.h
+_DEPS = main.h particle.h event.h collisionSystem.h
 DEPS = $(patsubst %,$(I_DIR)/%,$(_DEPS))
 
-_OBJS = main.o simulation.o particle.o event.o
+_OBJS = main.o particle.o event.o collisionSystem.o
 OBJS = $(patsubst %,$(O_DIR)/%,$(_OBJS))
 
 $(O_DIR)/%.o: %.cc $(DEPS)

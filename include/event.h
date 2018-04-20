@@ -9,17 +9,29 @@ public:
   // Initializes a new event to occur at time t, involving particles a and b
   Event(double t, Particle* a, Particle* b);
 
+  // > operator for the piority queue
+  bool operator>(const Event& rhs) const;
+
   // Compare times when two events will occur
   int CompareTo(Event* that);
 
   // Has any collision occurred between when event was created and now?
   bool IsValid();
 
+  // Returns the time that event is scheduled to occur
+  double GetTime() const;
+
+  // Returns particle A
+  Particle* GetParticleA() const;
+
+  // Returns particle B
+  Particle* GetParticleB() const;
+
 private:
   // Time that event is scheduled to occur
   double time_;
 
-  // Particles involved in event, possibly null
+  // Pointers to particles involved in event, possibly null
   Particle *a_, *b_;
 
   // Collision counts at event creation

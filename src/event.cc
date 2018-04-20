@@ -18,6 +18,11 @@ Event::Event(double t, Particle* a, Particle* b) :
   }
 }
 
+// < operator for the piority queue
+bool Event::operator>(const Event& rhs) const {
+  return this->GetTime() > rhs.GetTime();
+}
+
 // Compare times when two events will occur
 int Event::CompareTo(Event* that) {
   return this->time_ - that->time_;
@@ -33,4 +38,19 @@ bool Event::IsValid() {
   }
 
   return true;
+}
+
+// Returns the time that event is scheduled to occur
+double Event::GetTime() const {
+  return this->time_;
+}
+
+// Returns particle A
+Particle* Event::GetParticleA() const {
+  return this->a_;
+}
+
+// Returns particle B
+Particle* Event::GetParticleB() const {
+  return this->b_;
 }
