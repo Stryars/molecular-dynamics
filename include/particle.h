@@ -13,15 +13,13 @@ public:
   Particle(double rx, double ry, double vx, double vy, const double radius,
     const double mass, sf::Color color);
 
-  // Initializes a copy of a particle from a pointer.
-  Particle(Particle* p);
-
   // Initializes a copy of a particle.
   Particle(const Particle& p);
 
   // Initializes a particle with random position and velocity.
   Particle();
 
+  // Necessary for TimeToHit()
   bool operator==(const Particle& rhs) const;
 
   // Moves this particle in a straight line, based on its velocity,
@@ -29,7 +27,7 @@ public:
   void Move(double dt);
 
   // Draws this particle on the SFML window.
-  void Draw(sf::RenderWindow* window);
+  void Draw(sf::RenderWindow& window);
 
   // Returns the number of collisions involving this particle with either
   // walls or other particles.

@@ -2,5 +2,5 @@
 
 #pragma once
 
-#define WIDTH 800
-#define HEIGHT 800
+#define WIDTH 1000
+#define HEIGHT 1000

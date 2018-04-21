@@ -23,7 +23,8 @@ int main(int argc, char* argv[]) {
 
   // Initialization of the particles collection
   std::vector<Particle> particles {};
-  particles.push_back(Particle(0.05, 0.05, 0.04, 0, 0.01, 0.5, sf::Color::Black));
+  particles.push_back(Particle(0.05, 0.05, 0.015, 0, 0.01, 0.5, sf::Color::Black));
+  particles.push_back(Particle(0.95, 0.05, -0.014, 0, 0.01, 0.5, sf::Color::Red));
 
   // Initialization of the collision system
   const int limit {1000};

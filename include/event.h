@@ -4,6 +4,9 @@
 
 #include "particle.h"
 
+// A class describing an event: particle-particle collision, particle-wall
+// collision or redraw of each particle.
+// The collision system uses a priority queue to store all events.
 class Event {
 public:
   enum class Type {

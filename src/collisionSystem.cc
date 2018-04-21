@@ -32,76 +32,60 @@ CollisionSystem::~CollisionSystem() {
 void CollisionSystem::Predict(Particle* a, double limit) {
   if (a != nullptr) {
     // Particle-particle collisions
-    for (unsigned int i {0}; i < this->particles_.size(); i++) {
-      double dt {a->TimeToHit(this->particles_[i])};
-      if (this->time_ + dt <= limit) {
-        this->pq_->push(Event(Event::Type::kParticleParticle, this->time_ + dt, a, &(this->particles_[i])));
+    for (unsigned int i {0}; i < particles_.size(); i++) {
+      double dt {a->TimeToHit(particles_[i])};
+      if (time_ + dt <= limit) {
+        pq_->push(Event(Event::Type::kParticleParticle, time_ + dt, a, &(particles_[i])));
       }
     }
 
     // Particle-wall collisions
     double dtX {a->TimeToHitVerticalWall()};
     double dtY {a->TimeToHitHorizontalWall()};
-    if (this->time_ + dtX <= limit) {
-      this->pq_->push(Event(Event::Type::kVerticalWall, this->time_ + dtX, a, nullptr));
+    if (time_ + dtX <= limit) {
+      pq_->push(Event(Event::Type::kVerticalWall, time_ + dtX, a, nullptr));
     }
-    if (this->time_ + dtY <= limit) {
-      this->pq_->push(Event(Event::Type::kHorizontalWall, this->time_ + dtY, nullptr, a));
+    if (time_ + dtY <= limit) {
+      pq_->push(Event(Event::Type::kHorizontalWall, time_ + dtY, nullptr, a));
     }
   }
 }
 
 // Redraw all particles
-void CollisionSystem::Redraw(sf::RenderWindow* window, double limit) {
-  window->clear(sf::Color::White);
-  for (unsigned int i {0}; i < this->particles_.size(); i++) {
-    this->particles_[i].Draw(window);
+void CollisionSystem::Redraw(sf::RenderWindow& window, double limit) {
+  window.clear(sf::Color::White);
+  for (unsigned int i {0}; i < particles_.size(); i++) {
+    particles_[i].Draw(window);
   }
 
-  window->display();
+  window.display();
 
-  // bool nextDisplay {false};
-  // while (window->isOpen() && nextDisplay == false) {
-  //   sf::Event event;
-  //   while (window->pollEvent(event)) {
-  //     switch (event.type) {
-  //       case sf::Event::Closed:
-  //         window->close();
-  //         break;
-  //       case sf::Event::KeyReleased:
-  //         nextDisplay = true;
-  //       default:
-  //         break;
-  //     }
-  //   }
-  // }
-
-  if (this->time_ < limit) {
-      this->pq_->push(Event(Event::Type::kRedraw, this->time_ + 1.0 / this->Hz_, nullptr, nullptr));
+  if (time_ < limit) {
+      pq_->push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_, nullptr, nullptr));
   }
 }
 
 // Simulates the system of particles for the specified amount of time
 void CollisionSystem::Simulate(double limit) {
-  sf::RenderWindow *window = new sf::RenderWindow {sf::VideoMode(WIDTH, HEIGHT),
+  sf::RenderWindow window {sf::VideoMode(WIDTH, HEIGHT),
       "Molecular Dynamics", sf::Style::Titlebar | sf::Style::Close};
-  window->setFramerateLimit(60);
+  window.setFramerateLimit(60);
 
   // Initialize priority queue with collision events and redraw event
-  while (window->isOpen() && !this->pq_->empty()) {
+  while (window.isOpen() && !pq_->empty()) {
     sf::Event event;
-    while (window->pollEvent(event)) {
+    while (window.pollEvent(event)) {
       switch (event.type) {
         case sf::Event::Closed:
-          window->close();
+          window.close();
           break;
         default:
           break;
       }
     }
 
-    Event e = this->pq_->top();
-    this->pq_->pop();
+    Event e = pq_->top();
+    pq_->pop();
 
     if (e.IsValid()) {
       Particle* a {e.GetParticleA()};
@@ -109,10 +93,10 @@ void CollisionSystem::Simulate(double limit) {
       Event::Type event_type {e.GetType()};
 
       // Physical collision, update positions and simulation clock
-      for (unsigned int i {0}; i < this->particles_.size(); i++) {
-        this->particles_[i].Move(e.GetTime() - this->time_);
+      for (unsigned int i {0}; i < particles_.size(); i++) {
+        particles_[i].Move(e.GetTime() - time_);
       }
-      this->time_ = e.GetTime();
+      time_ = e.GetTime();
 
       // Process event
       switch (event_type) {
@@ -120,17 +104,17 @@ void CollisionSystem::Simulate(double limit) {
         case Event::Type::kParticleParticle:
           a->BounceOff(*b);
           break;
-        // Particle-wall collision
+        // Particle-vertical wall collision
         case Event::Type::kVerticalWall:
           a->BounceOffVerticalWall();
           break;
-        // Particle-wall collision
+        // Particle-horizontal wall collision
         case Event::Type::kHorizontalWall:
           b->BounceOffHorizontalWall();
           break;
         // Redraw event
         case Event::Type::kRedraw:
-          this->Redraw(window, limit);
+          Redraw(window, limit);
           break;
         default:
           printf("Error: event type invalid.\n");
@@ -138,10 +122,9 @@ void CollisionSystem::Simulate(double limit) {
           break;
       }
 
-      this->Predict(a, limit);
-      this->Predict(b, limit);
+
+      Predict(a, limit);
+      Predict(b, limit);
     }
   }
-
-  delete window;
 }
