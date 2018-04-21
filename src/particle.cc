@@ -1,5 +1,10 @@
 // Copyright 2018 <Samuel Diebolt>
 
+#include <cstdio>
+#include <cmath>
+
+#include "SFML/Graphics.hpp"
+
 #include "main.h"
 #include "particle.h"
 
@@ -11,9 +16,10 @@ Particle::Particle(double rx, double ry, double vx, double vy,
     vx_ {vx}, vy_ {vy},
     radius_ {radius}, mass_ {mass},
     color_ {color} {
-  circle_.setRadius(radius_);
+  circle_.setRadius(radius_ * HEIGHT);
+  circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_, ry_);
+  circle_.setPosition(rx_ * HEIGHT, ry * HEIGHT);
 }
 
 // Initializes a copy of a particle.
@@ -22,31 +28,36 @@ Particle::Particle(Particle* p) :
     vx_ {p->vx_}, vy_{p->vy_},
     radius_ {p->radius_}, mass_ {p->mass_},
     color_ {p->color_} {
-  circle_.setRadius(radius_);
+  circle_.setRadius(radius_ * HEIGHT);
+  circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_, ry_);
+  circle_.setPosition(rx_ * HEIGHT, ry_ * HEIGHT);
 }
 
 // Initializes a particle with random position and velocity.
 Particle::Particle() :
-    rx_ {300}, ry_ {300},
-    vx_ {10}, vy_{10},
-    radius_ {1}, mass_ {10},
+    rx_ {0.5}, ry_ {0.5},
+    vx_ {0.005}, vy_{0.005},
+    radius_ {0.01}, mass_ {0.5},
     color_ {sf::Color::Black} {
-  circle_.setRadius(radius_);
+  circle_.setRadius(radius_ * HEIGHT);
+  circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_, ry_);
+  circle_.setPosition(rx_ * HEIGHT, ry_ * HEIGHT);
 }
 
 // Moves this particle in a straight line, based on its velocity,
 // for a specified amount of time dt.
 void Particle::Move(double dt) {
+  printf("Moved particle dt %g.\n", dt);
   this->rx_ += this->vx_ * dt;
   this->ry_ += this->vy_ * dt;
 }
 
 // Draws this particle on the SFML window.
 void Particle::Draw(sf::RenderWindow* window) {
+  printf("Draw Particle. %g %g\n", this->rx_ * HEIGHT, this->ry_ * HEIGHT);
+  this->circle_.setPosition(this->rx_ * HEIGHT, this->ry_ * HEIGHT);
   window->draw(this->circle_);
 }
 
@@ -93,7 +104,7 @@ double Particle::TimeToHit(Particle* that) {
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitVerticalWall() {
   if (this->vx_ > 0) {
-    return (1.0 - this->rx_ - this->radius_) / this->vx_;
+    return (1 - this->rx_ - this->radius_) / this->vx_;
   } else if (this->vx_ < 0) {
     return (this->radius_ - this->rx_) / this->vx_;
   } else {
@@ -105,7 +116,7 @@ double Particle::TimeToHitVerticalWall() {
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitHorizontalWall() {
   if (this->vy_ > 0) {
-    return (1.0 - this->ry_ - this->radius_) / this->vy_;
+    return (1 - this->ry_ - this->radius_) / this->vy_;
   } else if (this->vy_ < 0) {
     return (this->radius_ - this->ry_) / this->vy_;
   } else {
@@ -165,4 +176,10 @@ void Particle::BounceOffHorizontalWall() {
 // Returns the kinetic energy of this particle.
 double Particle::KineticEnergy() {
   return 0.5 * this->mass_ * (this->vx_ * this->vx_ + this->vy_ * this->vy_);
+}
+
+// DEBUG FUNCTIONS
+void Particle::Print() {
+  printf("%f\t%f\t%f\t%f\t%f\t%f\n", this->rx_, this->ry_, this->vx_, this->vy_,
+    this->radius_, this->mass_);
 }

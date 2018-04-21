@@ -18,14 +18,9 @@ Event::Event(double t, Particle* a, Particle* b) :
   }
 }
 
-// < operator for the piority queue
+// > operator for the piority queue
 bool Event::operator>(const Event& rhs) const {
   return this->GetTime() > rhs.GetTime();
-}
-
-// Compare times when two events will occur
-int Event::CompareTo(Event* that) {
-  return this->time_ - that->time_;
 }
 
 // Has any collision occurred between when event was created and now?
