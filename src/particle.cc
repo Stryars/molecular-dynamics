@@ -14,6 +14,7 @@ Particle::Particle(double rx, double ry, double vx, double vy,
     const double radius, const double mass, sf::Color color) :
     rx_ {rx}, ry_ {ry},
     vx_ {vx}, vy_ {vy},
+    collisions_count_ {0},
     radius_ {radius}, mass_ {mass},
     color_ {color} {
   circle_.setRadius(radius_ * HEIGHT);
@@ -26,6 +27,7 @@ Particle::Particle(double rx, double ry, double vx, double vy,
 Particle::Particle(const Particle& p) :
     rx_ {p.rx_}, ry_ {p.ry_},
     vx_ {p.vx_}, vy_{p.vy_},
+    collisions_count_ {0},
     radius_ {p.radius_}, mass_ {p.mass_},
     color_ {p.color_} {
   circle_.setRadius(radius_ * HEIGHT);
@@ -38,6 +40,7 @@ Particle::Particle(const Particle& p) :
 Particle::Particle() :
     rx_ {0.5}, ry_ {0.5},
     vx_ {0.005}, vy_{0.005},
+    collisions_count_ {0},
     radius_ {0.01}, mass_ {0.5},
     color_ {sf::Color::Black} {
   circle_.setRadius(radius_ * HEIGHT);
@@ -118,9 +121,7 @@ double Particle::TimeToHitVerticalWall() {
 // Returns the amount of time for this particle to collide with a horizontal
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitHorizontalWall() {
-  printf("Time to hit horizontal\n");
   if (vy_ > 0) {
-    printf("vy>0\n");
     return (1 - ry_ - radius_) / vy_;
   } else if (vy_ < 0) {
     return (radius_ - ry_) / vy_;
@@ -171,7 +172,6 @@ void Particle::BounceOffVerticalWall() {
 // Updates the velocity of this particle upon collision with a
 // horizontal wall.
 void Particle::BounceOffHorizontalWall() {
-  printf("BounceOffHorizontalWall\n");
   vy_ = -vy_;
   collisions_count_++;
 }

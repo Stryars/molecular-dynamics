@@ -5,7 +5,8 @@
 
 // Initializes a new event to occur at time t, involving particles a and b
 Event::Event(Event::Type type, double t, Particle* a, Particle* b) :
-    type_ {type}, time_ {t}, a_ {a}, b_ {b} {
+    type_ {type}, time_ {t}, a_ {a}, b_ {b},
+    collisions_count_a_ {0}, collisions_count_b_ {0} {
   if (a != nullptr) {
     collisions_count_a_ = a->Count();
   } else {
@@ -28,7 +29,7 @@ bool Event::IsValid() {
   if (a_ != nullptr && a_->Count() != collisions_count_a_) {
     return false;
   }
-  if (b_ != nullptr && b_->Count() != collisions_count_a_) {
+  if (b_ != nullptr && b_->Count() != collisions_count_b_) {
     return false;
   }
 

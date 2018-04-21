@@ -63,7 +63,7 @@ private:
   double rx_, ry_;            // Position
   double vx_, vy_;            // Velocity
 
-  double collisions_count_;   // Number of collisions so far
+  int collisions_count_;   // Number of collisions so far
 
   const double radius_;       // Radius
   const double mass_;         // Mass

@@ -14,28 +14,22 @@ CollisionSystem::CollisionSystem(const std::vector<Particle>& particles, double 
     Hz_ {2},
     time_ {0},
     particles_ {particles} {
-  pq_ = new std::priority_queue<Event, std::vector<Event>, std::greater<Event>>;
-  for (unsigned int i {0}; i < particles_.size(); i++) {
+  for (unsigned int i {0}; i < particles_.size(); ++i) {
     Predict(&(particles_[i]), limit);
   }
 
   // Redraw event
-  pq_->push(Event(Event::Type::kRedraw, 0, nullptr, nullptr));
-}
-
-// Deletes the priority queue.
-CollisionSystem::~CollisionSystem() {
-  delete pq_;
+  pq_.push(Event(Event::Type::kRedraw, 0, nullptr, nullptr));
 }
 
 // Updates priority queue with all new events for particle a
 void CollisionSystem::Predict(Particle* a, double limit) {
   if (a != nullptr) {
     // Particle-particle collisions
-    for (unsigned int i {0}; i < particles_.size(); i++) {
+    for (unsigned int i {0}; i < particles_.size(); ++i) {
       double dt {a->TimeToHit(particles_[i])};
       if (time_ + dt <= limit) {
-        pq_->push(Event(Event::Type::kParticleParticle, time_ + dt, a, &(particles_[i])));
+        pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a, &(particles_[i])));
       }
     }
 
@@ -43,10 +37,10 @@ void CollisionSystem::Predict(Particle* a, double limit) {
     double dtX {a->TimeToHitVerticalWall()};
     double dtY {a->TimeToHitHorizontalWall()};
     if (time_ + dtX <= limit) {
-      pq_->push(Event(Event::Type::kVerticalWall, time_ + dtX, a, nullptr));
+      pq_.push(Event(Event::Type::kVerticalWall, time_ + dtX, a, nullptr));
     }
     if (time_ + dtY <= limit) {
-      pq_->push(Event(Event::Type::kHorizontalWall, time_ + dtY, nullptr, a));
+      pq_.push(Event(Event::Type::kHorizontalWall, time_ + dtY, nullptr, a));
     }
   }
 }
@@ -54,14 +48,14 @@ void CollisionSystem::Predict(Particle* a, double limit) {
 // Redraw all particles
 void CollisionSystem::Redraw(sf::RenderWindow& window, double limit) {
   window.clear(sf::Color::White);
-  for (unsigned int i {0}; i < particles_.size(); i++) {
+  for (unsigned int i {0}; i < particles_.size(); ++i) {
     particles_[i].Draw(window);
   }
 
   window.display();
 
   if (time_ < limit) {
-      pq_->push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_, nullptr, nullptr));
+      pq_.push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_, nullptr, nullptr));
   }
 }
 
@@ -72,7 +66,7 @@ void CollisionSystem::Simulate(double limit) {
   window.setFramerateLimit(60);
 
   // Initialize priority queue with collision events and redraw event
-  while (window.isOpen() && !pq_->empty()) {
+  while (window.isOpen() && !pq_.empty()) {
     sf::Event event;
     while (window.pollEvent(event)) {
       switch (event.type) {
@@ -84,8 +78,8 @@ void CollisionSystem::Simulate(double limit) {
       }
     }
 
-    Event e = pq_->top();
-    pq_->pop();
+    Event e = pq_.top();
+    pq_.pop();
 
     if (e.IsValid()) {
       Particle* a {e.GetParticleA()};
@@ -93,7 +87,7 @@ void CollisionSystem::Simulate(double limit) {
       Event::Type event_type {e.GetType()};
 
       // Physical collision, update positions and simulation clock
-      for (unsigned int i {0}; i < particles_.size(); i++) {
+      for (unsigned int i {0}; i < particles_.size(); ++i) {
         particles_[i].Move(e.GetTime() - time_);
       }
       time_ = e.GetTime();
@@ -121,7 +115,6 @@ void CollisionSystem::Simulate(double limit) {
           exit(1);
           break;
       }
-
 
       Predict(a, limit);
       Predict(b, limit);
