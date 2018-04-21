@@ -10,3 +10,6 @@ molecular-sim
 include/SFML/*
 *.dylib
 lib/pkgconfig/*
+
+# Misc
+.DS_Store

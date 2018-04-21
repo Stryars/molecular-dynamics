@@ -12,9 +12,6 @@ public:
   // > operator for the piority queue
   bool operator>(const Event& rhs) const;
 
-  // Compare times when two events will occur
-  int CompareTo(Event* that);
-
   // Has any collision occurred between when event was created and now?
   bool IsValid();
 

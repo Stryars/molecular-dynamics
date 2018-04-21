@@ -56,6 +56,9 @@ public:
   // Returns the kinetic energy of this particle.
   double KineticEnergy();
 
+  // DEBUG FUNCTIONS
+  void Print();
+
 private:
   double rx_, ry_;            // Position
   double vx_, vy_;            // Velocity
