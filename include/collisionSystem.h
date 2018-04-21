@@ -11,7 +11,7 @@
 class CollisionSystem {
 public:
   // Initializes a system with the specified collection of particles.
-  CollisionSystem(std::vector<Particle>* particles, double limit);
+  CollisionSystem(const std::vector<Particle>& particles, double limit);
 
   // Deletes the priority queue.
   ~CollisionSystem();
@@ -36,5 +36,5 @@ private:
   double time_;
 
   // Array of particles
-  std::vector<Particle>* particles_;
+  std::vector<Particle> particles_;
 };

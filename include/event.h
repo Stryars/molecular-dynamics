@@ -6,8 +6,15 @@
 
 class Event {
 public:
+  enum class Type {
+    kParticleParticle,
+    kVerticalWall,
+    kHorizontalWall,
+    kRedraw
+  };
+
   // Initializes a new event to occur at time t, involving particles a and b
-  Event(double t, Particle* a, Particle* b);
+  Event(Type type, double t, Particle* a, Particle* b);
 
   // > operator for the piority queue
   bool operator>(const Event& rhs) const;
@@ -24,7 +31,13 @@ public:
   // Returns particle B
   Particle* GetParticleB() const;
 
+  // Returns event type
+  Type GetType() const;
+
 private:
+  // Event type
+  Type type_;
+
   // Time that event is scheduled to occur
   double time_;
 

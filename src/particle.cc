@@ -58,6 +58,10 @@ Particle::Particle() :
   circle_.setPosition(rx_ * HEIGHT, ry_ * HEIGHT);
 }
 
+bool Particle::operator==(const Particle& rhs) const {
+  return (this->rx_ == rhs.rx_);
+}
+
 // Moves this particle in a straight line, based on its velocity,
 // for a specified amount of time dt.
 void Particle::Move(double dt) {
@@ -79,15 +83,15 @@ int Particle::Count() {
 
 // Returns the amount of time for this particle to collide with the specified
 // particle, assuming no intervening collisions.
-double Particle::TimeToHit(Particle* that) {
-  if (this == that) {
+double Particle::TimeToHit(Particle& that) {
+  if (*this == that) {
     return INFINITY;
   }
 
-  double dx {that->rx_ - this->rx_};
-  double dy {that->ry_ - this->ry_};
-  double dvx {that->vx_ - this->vx_};
-  double dvy {that->vy_ - this->vy_};
+  double dx {that.rx_ - this->rx_};
+  double dy {that.ry_ - this->ry_};
+  double dvx {that.vx_ - this->vx_};
+  double dvy {that.vy_ - this->vy_};
 
   // Dot product dv.dr
   double dvdr {dx * dvx + dy * dvy};
@@ -100,7 +104,7 @@ double Particle::TimeToHit(Particle* that) {
   }
 
   // Distance between particles centers
-  double sigma {this->radius_ + that->radius_};
+  double sigma {this->radius_ + that.radius_};
 
   double d {(dvdr * dvdr) - dvdv * (drdr - sigma * sigma)};
   if (d < 0) {
@@ -138,21 +142,21 @@ double Particle::TimeToHitHorizontalWall() {
 
 // Updates the velocity of this particle and the specified particle according
 // to the laws of elastic collision.
-void Particle::BounceOff(Particle* that) {
-  double dx {that->rx_ - this->rx_};
-  double dy {that->ry_ - this->ry_};
-  double dvx {that->vx_ - this->vx_};
-  double dvy {that->vy_ - this->vy_};
+void Particle::BounceOff(Particle& that) {
+  double dx {that.rx_ - this->rx_};
+  double dy {that.ry_ - this->ry_};
+  double dvx {that.vx_ - this->vx_};
+  double dvy {that.vy_ - this->vy_};
 
   // Dot product dv.dr
   double dvdr {dx * dvx + dy * dvy};
 
   // Distance between particles centers at collision.
-  double dist {this->radius_ + that->radius_};
+  double dist {this->radius_ + that.radius_};
 
   // Magnitude of normal force
-  double magnitude {2 * this->mass_ * that->mass_ * dvdr /
-    ((this->mass_ + that->mass_) * dist)};
+  double magnitude {2 * this->mass_ * that.mass_ * dvdr /
+    ((this->mass_ + that.mass_) * dist)};
 
   // Normal force in x and y directions
   double fx {magnitude * dx / dist};
@@ -161,12 +165,12 @@ void Particle::BounceOff(Particle* that) {
   // Update velocities according to normal force
   this->vx_ += fx / this->mass_;
   this->vy_ += fy / this->mass_;
-  that->vx_ -= fx / that->mass_;
-  that->vy_ -= fy / that->mass_;
+  that.vx_ -= fx / that.mass_;
+  that.vy_ -= fy / that.mass_;
 
   // Update collision counts
   this->collisions_count_++;
-  that->collisions_count_++;
+  that.collisions_count_++;
 }
 
 // Updates the velocity of this particle upon collision with a vertical wall.

@@ -22,19 +22,15 @@ int main(int argc, char* argv[]) {
   }
 
   // Initialization of the particles collection
-  std::vector<Particle>* particles = new std::vector<Particle>();
-  particles->push_back(Particle(0.05, 0.05, 0.04, 0, 0.01, 0.5, sf::Color::Black));
-  //particles->push_back(Particle(0.95, 0.05 , -0.01, 0, 0.01, 0.5, sf::Color::Red));
+  std::vector<Particle> particles {};
+  particles.push_back(Particle(0.05, 0.05, 0.04, 0, 0.01, 0.5, sf::Color::Black));
 
   // Initialization of the collision system
   const int limit {1000};
-  CollisionSystem* system = new CollisionSystem {particles, limit};
+  CollisionSystem system {particles, limit};
 
   // Initialization of the simulation
-  system->Simulate(limit);
-
-  delete particles;
-  delete system;
+  system.Simulate(limit);
 
   return 0;
 }

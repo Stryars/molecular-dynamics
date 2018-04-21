@@ -22,6 +22,8 @@ public:
   // Initializes a particle with random position and velocity.
   Particle();
 
+  bool operator==(const Particle& rhs) const;
+
   // Moves this particle in a straight line, based on its velocity,
   // for a specified amount of time dt.
   void Move(double dt);
@@ -35,7 +37,7 @@ public:
 
   // Returns the amount of time for this particle to collide with the specified
   // particle, assuming no intervening collisions.
-  double TimeToHit(Particle* that);
+  double TimeToHit(Particle& that);
 
   // Returns the amount of time for this particle to collide with a vertical
   // wall, assuming no intervening collisions.
@@ -47,7 +49,7 @@ public:
 
   // Updates the velocity of this particle and the specified particle according
   // to the laws of elastic collision.
-  void BounceOff(Particle* that);
+  void BounceOff(Particle& that);
 
   // Updates the velocity of this particle upon collision with a vertical wall.
   void BounceOffVerticalWall();

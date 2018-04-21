@@ -10,17 +10,17 @@
 #include "event.h"
 
 // Initializes a system with the specified collection of particles.
-CollisionSystem::CollisionSystem(std::vector<Particle>* particles, double limit) :
+CollisionSystem::CollisionSystem(const std::vector<Particle>& particles, double limit) :
     Hz_ {2},
     time_ {0},
     particles_ {particles} {
   pq_ = new std::priority_queue<Event, std::vector<Event>, std::greater<Event>>;
-  for (unsigned int i {0}; i < particles_->size(); i++) {
-    Predict(&((*particles_)[i]), limit); // Ref ?
+  for (unsigned int i {0}; i < particles_.size(); i++) {
+    Predict(&(particles_[i]), limit);
   }
 
   // Redraw event
-  pq_->push(Event(0, nullptr, nullptr));
+  pq_->push(Event(Event::Type::kRedraw, 0, nullptr, nullptr));
 }
 
 // Deletes the priority queue.
@@ -32,10 +32,10 @@ CollisionSystem::~CollisionSystem() {
 void CollisionSystem::Predict(Particle* a, double limit) {
   if (a != nullptr) {
     // Particle-particle collisions
-    for (unsigned int i {0}; i < this->particles_->size(); i++) {
-      double dt {a->TimeToHit(&((*this->particles_)[i]))};
+    for (unsigned int i {0}; i < this->particles_.size(); i++) {
+      double dt {a->TimeToHit(this->particles_[i])};
       if (this->time_ + dt <= limit) {
-        this->pq_->push(Event(this->time_ + dt, a, &((*this->particles_)[i])));
+        this->pq_->push(Event(Event::Type::kParticleParticle, this->time_ + dt, a, &(this->particles_[i])));
       }
     }
 
@@ -43,10 +43,10 @@ void CollisionSystem::Predict(Particle* a, double limit) {
     double dtX {a->TimeToHitVerticalWall()};
     double dtY {a->TimeToHitHorizontalWall()};
     if (this->time_ + dtX <= limit) {
-      this->pq_->push(Event(this->time_ + dtX, a, nullptr));
+      this->pq_->push(Event(Event::Type::kVerticalWall, this->time_ + dtX, a, nullptr));
     }
     if (this->time_ + dtY <= limit) {
-      this->pq_->push(Event(this->time_ + dtY, nullptr, a));
+      this->pq_->push(Event(Event::Type::kHorizontalWall, this->time_ + dtY, nullptr, a));
     }
   }
 }
@@ -54,8 +54,8 @@ void CollisionSystem::Predict(Particle* a, double limit) {
 // Redraw all particles
 void CollisionSystem::Redraw(sf::RenderWindow* window, double limit) {
   window->clear(sf::Color::White);
-  for (unsigned int i {0}; i < this->particles_->size(); i++) {
-    (*this->particles_)[i].Draw(window);
+  for (unsigned int i {0}; i < this->particles_.size(); i++) {
+    this->particles_[i].Draw(window);
   }
 
   window->display();
@@ -77,7 +77,7 @@ void CollisionSystem::Redraw(sf::RenderWindow* window, double limit) {
   // }
 
   if (this->time_ < limit) {
-      this->pq_->push(Event(this->time_ + 1.0 / this->Hz_, nullptr, nullptr));
+      this->pq_->push(Event(Event::Type::kRedraw, this->time_ + 1.0 / this->Hz_, nullptr, nullptr));
   }
 }
 
@@ -106,26 +106,36 @@ void CollisionSystem::Simulate(double limit) {
     if (e.IsValid()) {
       Particle* a {e.GetParticleA()};
       Particle* b {e.GetParticleB()};
+      Event::Type event_type {e.GetType()};
 
       // Physical collision, update positions and simulation clock
-      for (unsigned int i {0}; i < this->particles_->size(); i++) {
-        (*this->particles_)[i].Move(e.GetTime() - this->time_);
+      for (unsigned int i {0}; i < this->particles_.size(); i++) {
+        this->particles_[i].Move(e.GetTime() - this->time_);
       }
       this->time_ = e.GetTime();
 
       // Process event
-      if (a != nullptr && b != nullptr) {
+      switch (event_type) {
         // Particle-particle collision
-        a->BounceOff(b);
-      } else if (a!= nullptr && b == nullptr) {
+        case Event::Type::kParticleParticle:
+          a->BounceOff(*b);
+          break;
         // Particle-wall collision
-        a->BounceOffVerticalWall();
-      } else if (a == nullptr && b != nullptr) {
+        case Event::Type::kVerticalWall:
+          a->BounceOffVerticalWall();
+          break;
         // Particle-wall collision
-        b->BounceOffHorizontalWall();
-      } else if (a == nullptr && b == nullptr) {
+        case Event::Type::kHorizontalWall:
+          b->BounceOffHorizontalWall();
+          break;
         // Redraw event
-        this->Redraw(window, limit);
+        case Event::Type::kRedraw:
+          this->Redraw(window, limit);
+          break;
+        default:
+          printf("Error: event type invalid.\n");
+          exit(1);
+          break;
       }
 
       this->Predict(a, limit);
