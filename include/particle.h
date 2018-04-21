@@ -13,8 +13,11 @@ public:
   Particle(double rx, double ry, double vx, double vy, const double radius,
     const double mass, sf::Color color);
 
-  // Initializes a copy of a particle.
+  // Initializes a copy of a particle from a pointer.
   Particle(Particle* p);
+
+  // Initializes a copy of a particle.
+  Particle(const Particle& p);
 
   // Initializes a particle with random position and velocity.
   Particle();
@@ -55,9 +58,6 @@ public:
 
   // Returns the kinetic energy of this particle.
   double KineticEnergy();
-
-  // DEBUG FUNCTIONS
-  void Print();
 
 private:
   double rx_, ry_;            // Position

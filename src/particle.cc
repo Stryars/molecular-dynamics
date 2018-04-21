@@ -22,12 +22,24 @@ Particle::Particle(double rx, double ry, double vx, double vy,
   circle_.setPosition(rx_ * HEIGHT, ry * HEIGHT);
 }
 
-// Initializes a copy of a particle.
+// Initializes a copy of a particle from a pointer.
 Particle::Particle(Particle* p) :
     rx_ {p->rx_}, ry_ {p->ry_},
     vx_ {p->vx_}, vy_{p->vy_},
     radius_ {p->radius_}, mass_ {p->mass_},
     color_ {p->color_} {
+  circle_.setRadius(radius_ * HEIGHT);
+  circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
+  circle_.setFillColor(color_);
+  circle_.setPosition(rx_ * HEIGHT, ry_ * HEIGHT);
+}
+
+// Initializes a copy of a particle.
+Particle::Particle(const Particle& p) :
+    rx_ {p.rx_}, ry_ {p.ry_},
+    vx_ {p.vx_}, vy_{p.vy_},
+    radius_ {p.radius_}, mass_ {p.mass_},
+    color_ {p.color_} {
   circle_.setRadius(radius_ * HEIGHT);
   circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
@@ -49,14 +61,12 @@ Particle::Particle() :
 // Moves this particle in a straight line, based on its velocity,
 // for a specified amount of time dt.
 void Particle::Move(double dt) {
-  printf("Moved particle dt %g.\n", dt);
   this->rx_ += this->vx_ * dt;
   this->ry_ += this->vy_ * dt;
 }
 
 // Draws this particle on the SFML window.
 void Particle::Draw(sf::RenderWindow* window) {
-  printf("Draw Particle. %g %g\n", this->rx_ * HEIGHT, this->ry_ * HEIGHT);
   this->circle_.setPosition(this->rx_ * HEIGHT, this->ry_ * HEIGHT);
   window->draw(this->circle_);
 }
@@ -115,7 +125,9 @@ double Particle::TimeToHitVerticalWall() {
 // Returns the amount of time for this particle to collide with a horizontal
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitHorizontalWall() {
+  printf("Time to hit horizontal\n");
   if (this->vy_ > 0) {
+    printf("vy>0\n");
     return (1 - this->ry_ - this->radius_) / this->vy_;
   } else if (this->vy_ < 0) {
     return (this->radius_ - this->ry_) / this->vy_;
@@ -127,7 +139,6 @@ double Particle::TimeToHitHorizontalWall() {
 // Updates the velocity of this particle and the specified particle according
 // to the laws of elastic collision.
 void Particle::BounceOff(Particle* that) {
-  printf("BounceOff\n");
   double dx {that->rx_ - this->rx_};
   double dy {that->ry_ - this->ry_};
   double dvx {that->vx_ - this->vx_};
@@ -160,7 +171,6 @@ void Particle::BounceOff(Particle* that) {
 
 // Updates the velocity of this particle upon collision with a vertical wall.
 void Particle::BounceOffVerticalWall() {
-  printf("BounceOffVerticalWall\n");
   this->vx_ = -this->vx_;
   this->collisions_count_++;
 }
@@ -176,10 +186,4 @@ void Particle::BounceOffHorizontalWall() {
 // Returns the kinetic energy of this particle.
 double Particle::KineticEnergy() {
   return 0.5 * this->mass_ * (this->vx_ * this->vx_ + this->vy_ * this->vy_);
-}
-
-// DEBUG FUNCTIONS
-void Particle::Print() {
-  printf("%f\t%f\t%f\t%f\t%f\t%f\n", this->rx_, this->ry_, this->vx_, this->vy_,
-    this->radius_, this->mass_);
 }
