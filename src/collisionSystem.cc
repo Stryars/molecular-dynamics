@@ -47,7 +47,7 @@ void CollisionSystem::Predict(Particle* a, double limit) {
 
 // Redraw all particles
 void CollisionSystem::Redraw(sf::RenderWindow& window, double limit) {
-  window.clear(sf::Color::White);
+  window.clear(sf::Color::Black);
   for (unsigned int i {0}; i < particles_.size(); ++i) {
     particles_[i].Draw(window);
   }

@@ -20,7 +20,7 @@ Particle::Particle(double rx, double ry, double vx, double vy,
   circle_.setRadius(radius_ * HEIGHT);
   circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_ * HEIGHT, ry * HEIGHT);
+  circle_.setPosition(rx_ * WIDTH, ry * HEIGHT);
 }
 
 // Initializes a copy of a particle.
@@ -33,7 +33,7 @@ Particle::Particle(const Particle& p) :
   circle_.setRadius(radius_ * HEIGHT);
   circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_ * HEIGHT, ry_ * HEIGHT);
+  circle_.setPosition(rx_ * WIDTH, ry_ * HEIGHT);
 }
 
 // Initializes a particle with random position and velocity.
@@ -46,7 +46,7 @@ Particle::Particle() :
   circle_.setRadius(radius_ * HEIGHT);
   circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_ * HEIGHT, ry_ * HEIGHT);
+  circle_.setPosition(rx_ * WIDTH, ry_ * HEIGHT);
 }
 
 // Necessary for TimeToHit()
@@ -63,7 +63,7 @@ void Particle::Move(double dt) {
 
 // Draws this particle on the SFML window.
 void Particle::Draw(sf::RenderWindow& window) {
-  circle_.setPosition(rx_ * HEIGHT, ry_ * HEIGHT);
+  circle_.setPosition(rx_ * WIDTH, ry_ * HEIGHT);
   window.draw(circle_);
 }
 
