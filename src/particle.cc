@@ -17,10 +17,10 @@ Particle::Particle(double rx, double ry, double vx, double vy,
     collisions_count_ {0},
     radius_ {radius}, mass_ {mass},
     color_ {color} {
-  circle_.setRadius(radius_ * HEIGHT);
+  circle_.setRadius(radius_);
   circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_ * WIDTH, ry * HEIGHT);
+  circle_.setPosition(rx_, ry);
 }
 
 // Initializes a copy of a particle.
@@ -30,10 +30,10 @@ Particle::Particle(const Particle& p) :
     collisions_count_ {0},
     radius_ {p.radius_}, mass_ {p.mass_},
     color_ {p.color_} {
-  circle_.setRadius(radius_ * HEIGHT);
+  circle_.setRadius(radius_);
   circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_ * WIDTH, ry_ * HEIGHT);
+  circle_.setPosition(rx_, ry_);
 }
 
 // Initializes a particle with random position and velocity.
@@ -43,10 +43,10 @@ Particle::Particle() :
     collisions_count_ {0},
     radius_ {0.01}, mass_ {0.5},
     color_ {sf::Color::Black} {
-  circle_.setRadius(radius_ * HEIGHT);
+  circle_.setRadius(radius_);
   circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
   circle_.setFillColor(color_);
-  circle_.setPosition(rx_ * WIDTH, ry_ * HEIGHT);
+  circle_.setPosition(rx_, ry_);
 }
 
 // Necessary for TimeToHit()
@@ -63,13 +63,13 @@ void Particle::Move(double dt) {
 
 // Draws this particle on the SFML window.
 void Particle::Draw(sf::RenderWindow& window) {
-  circle_.setPosition(rx_ * WIDTH, ry_ * HEIGHT);
+  circle_.setPosition(rx_, ry_);
   window.draw(circle_);
 }
 
 // Returns the number of collisions involving this particle with either
 // walls or other particles.
-int Particle::Count() {
+int Particle::Count() const {
   return collisions_count_;
 }
 
@@ -97,12 +97,18 @@ double Particle::TimeToHit(Particle& that) {
 
   // Distance between particles centers
   double sigma {radius_ + that.radius_};
+  if (drdr < sigma * sigma) {
+    printf("Overlapping particles.\n");
+  }
 
   double d {(dvdr * dvdr) - dvdv * (drdr - sigma * sigma)};
   if (d < 0) {
     return INFINITY;
   }
 
+  if ((-(dvdr + sqrt(d)) / dvdv) < 0) {
+    printf("Negative time to hit particle.\n");
+  }
   return -(dvdr + sqrt(d)) / dvdv;
 }
 
@@ -110,7 +116,7 @@ double Particle::TimeToHit(Particle& that) {
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitVerticalWall() {
   if (vx_ > 0) {
-    return (1 - rx_ - radius_) / vx_;
+    return (WIDTH - rx_ - radius_) / vx_;
   } else if (vx_ < 0) {
     return (radius_ - rx_) / vx_;
   } else {
@@ -122,7 +128,7 @@ double Particle::TimeToHitVerticalWall() {
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitHorizontalWall() {
   if (vy_ > 0) {
-    return (1 - ry_ - radius_) / vy_;
+    return (HEIGHT - ry_ - radius_) / vy_;
   } else if (vy_ < 0) {
     return (radius_ - ry_) / vy_;
   } else {
@@ -179,4 +185,16 @@ void Particle::BounceOffHorizontalWall() {
 // Returns the kinetic energy of this particle.
 double Particle::KineticEnergy() {
   return 0.5 * mass_ * (vx_ * vx_ + vy_ * vy_);
+}
+
+// Returns the particle's radius.
+double Particle::GetRadius() const {
+  return radius_;
+}
+
+// Sets the particle's radius.
+void Particle::SetRadius(double radius) {
+  radius_ = radius;
+  circle_.setRadius(radius_);
+  circle_.setOrigin(radius_, radius_);
 }

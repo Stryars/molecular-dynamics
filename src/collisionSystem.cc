@@ -2,6 +2,9 @@
 
 #include <queue>
 #include <cstdio>
+#include <ctime>
+#include <iostream>
+#include <iomanip>
 
 #include "SFML/Graphics.hpp"
 #include "main.h"
@@ -11,7 +14,7 @@
 
 // Initializes a system with the specified collection of particles.
 CollisionSystem::CollisionSystem(const std::vector<Particle>& particles, double limit) :
-    Hz_ {2},
+    Hz_ {3},
     time_ {0},
     particles_ {particles} {
   for (unsigned int i {0}; i < particles_.size(); ++i) {
@@ -63,7 +66,10 @@ void CollisionSystem::Redraw(sf::RenderWindow& window, double limit) {
 void CollisionSystem::Simulate(double limit) {
   sf::RenderWindow window {sf::VideoMode(WIDTH, HEIGHT),
       "Molecular Dynamics", sf::Style::Titlebar | sf::Style::Close};
-  window.setFramerateLimit(60);
+  window.setFramerateLimit(50);
+
+  time_t start_time {time(NULL)};
+  long collisions {0};
 
   // Initialize priority queue with collision events and redraw event
   while (window.isOpen() && !pq_.empty()) {
@@ -78,6 +84,12 @@ void CollisionSystem::Simulate(double limit) {
       }
     }
 
+    time_t elapsed_time = time(NULL) - start_time;
+    if (elapsed_time > 0) {
+      std::cout << "\rCollisions per second: " << std::setw(3) << std::setfill('0') << collisions / elapsed_time << '.' << std::flush;
+      fflush(stdout);
+    }
+
     Event e = pq_.top();
     pq_.pop();
 
@@ -88,7 +100,12 @@ void CollisionSystem::Simulate(double limit) {
 
       // Physical collision, update positions and simulation clock
       for (unsigned int i {0}; i < particles_.size(); ++i) {
+        // Update positions
         particles_[i].Move(e.GetTime() - time_);
+        // if (particles_[i].GetRadius() < 30) {
+        //     particles_[i].SetRadius(particles_[i].GetRadius() + 0.01);
+        // }
+        // Get collisions count
       }
       time_ = e.GetTime();
 
@@ -97,14 +114,17 @@ void CollisionSystem::Simulate(double limit) {
         // Particle-particle collision
         case Event::Type::kParticleParticle:
           a->BounceOff(*b);
+          collisions++;
           break;
         // Particle-vertical wall collision
         case Event::Type::kVerticalWall:
           a->BounceOffVerticalWall();
+          collisions++;
           break;
         // Particle-horizontal wall collision
         case Event::Type::kHorizontalWall:
           b->BounceOffHorizontalWall();
+          collisions++;
           break;
         // Redraw event
         case Event::Type::kRedraw:
