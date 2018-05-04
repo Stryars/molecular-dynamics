@@ -13,13 +13,19 @@ public:
   // Initializes a system with the specified collection of particles.
   CollisionSystem(const std::vector<Particle>& particles, double limit);
 
-  // Updates priority queue with all new events for particle a
+  // Updates priority queue with all new events for particle a.
   void Predict(Particle* a, double limit);
 
-  // Redraw all particles
-  void Redraw(sf::RenderWindow& window, sf::RectangleShape& box, double limit);
+  // Redraws all particles.
+  void Redraw(sf::RenderWindow& window, sf::RectangleShape& box);
 
-  // Simulates the system of particles for the specified amount of time
+  // Pauses the simulation.
+  void Pause(sf::RenderWindow& window);
+
+  // Displays physical quantities (temperature, pressure, etc.) and helper text.
+  void DisplayCharacteristics(sf::RenderWindow& window, sf::Font font, time_t elapsed_time, int collisions, double average_kinetic_energy);
+
+  // Simulates the system of particles for the specified amount of time.
   void Simulate(double limit);
 
 private:

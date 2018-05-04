@@ -65,6 +65,9 @@ public:
   // Sets the particle's radius.
   void SetRadius(double radius);
 
+  // Returns the particle's speed.
+  double GetSpeed() const;
+
 private:
   double rx_, ry_;            // Position
   double vx_, vy_;            // Velocity

@@ -2,5 +2,10 @@
 
 #pragma once
 
-#define WIDTH 1000
-#define HEIGHT 1000
+// Window size
+#define WIDTH 1920
+#define HEIGHT 1080
+
+// Equivalence pixel -> distance in meters
+#define DISTANCE_UNIT 0.001
+#define MASS_UNIT 2.6787702e-26

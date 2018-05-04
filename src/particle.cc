@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cmath>
+#include <ctime>
 
 #include "SFML/Graphics.hpp"
 
@@ -98,7 +99,7 @@ double Particle::TimeToHit(Particle& that) {
   // Distance between particles centers
   double sigma {radius_ + that.radius_};
   if (drdr < sigma * sigma) {
-    printf("Overlapping particles.\n");
+    printf("Overlapping particles: %ld.\n", time(NULL));
   }
 
   double d {(dvdr * dvdr) - dvdv * (drdr - sigma * sigma)};
@@ -106,9 +107,6 @@ double Particle::TimeToHit(Particle& that) {
     return INFINITY;
   }
 
-  if ((-(dvdr + sqrt(d)) / dvdv) < 0) {
-    printf("Negative time to hit particle.\n");
-  }
   return -(dvdr + sqrt(d)) / dvdv;
 }
 
@@ -116,9 +114,9 @@ double Particle::TimeToHit(Particle& that) {
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitVerticalWall() {
   if (vx_ > 0) {
-    return (WIDTH - rx_ - radius_) / vx_;
+    return (0.8 * WIDTH - rx_ - radius_) / vx_;
   } else if (vx_ < 0) {
-    return (radius_ - rx_) / vx_;
+    return (radius_ - rx_ + 0.2 * WIDTH) / vx_;
   } else {
     return INFINITY;
   }
@@ -128,9 +126,9 @@ double Particle::TimeToHitVerticalWall() {
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitHorizontalWall() {
   if (vy_ > 0) {
-    return (HEIGHT - ry_ - radius_) / vy_;
+    return (0.8 * HEIGHT - ry_ - radius_) / vy_;
   } else if (vy_ < 0) {
-    return (radius_ - ry_) / vy_;
+    return (radius_ - ry_ + 0.2 * HEIGHT) / vy_;
   } else {
     return INFINITY;
   }
@@ -184,7 +182,7 @@ void Particle::BounceOffHorizontalWall() {
 
 // Returns the kinetic energy of this particle.
 double Particle::KineticEnergy() {
-  return 0.5 * mass_ * (vx_ * vx_ + vy_ * vy_);
+  return 0.5 * mass_ * MASS_UNIT * (vx_ * DISTANCE_UNIT * vx_ * DISTANCE_UNIT + vy_ * DISTANCE_UNIT * vy_ * DISTANCE_UNIT);
 }
 
 // Returns the particle's radius.
@@ -197,4 +195,9 @@ void Particle::SetRadius(double radius) {
   radius_ = radius;
   circle_.setRadius(radius_);
   circle_.setOrigin(radius_, radius_);
+}
+
+// Returns the particle's speed.
+double Particle::GetSpeed() const {
+  return sqrt(vx_ * vx_ + vy_ * vy_);
 }

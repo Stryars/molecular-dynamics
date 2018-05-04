@@ -23,20 +23,21 @@ int main(int argc, char* argv[]) {
   }
 
   std::mt19937 rng {std::random_device()()};
-  std::uniform_real_distribution<double> random_x(40, WIDTH-40);
-  std::uniform_real_distribution<double> random_y(40, HEIGHT-40);
-  std::uniform_real_distribution<double> random_speed(-40, 40);
+  std::uniform_real_distribution<double> random_x(0.2 * WIDTH + 40, 0.8 * WIDTH - 40);
+  std::uniform_real_distribution<double> random_y(0.2 * HEIGHT + 40, 0.8 * HEIGHT - 40);
+  std::uniform_real_distribution<double> random_speed(400000, 600000);
+  std::uniform_real_distribution<double> random_speed_sign(-1, 1);
   std::uniform_real_distribution<double> random_radius(20, 30);
   std::uniform_int_distribution<int> random_color(0, 255);
 
   // Initialization of the particles collection
   std::vector<Particle> particles {};
-  // particles.push_back(Particle(WIDTH / 2, HEIGHT / 2, 30, 0, 20, 10, sf::Color(255, 0, 0)));
+  // particles.push_back(Particle(WIDTH / 2, HEIGHT / 2, 30, 0, 40, 10, sf::Color(255, 0, 0)));
   for (auto i {0}; i < n; ++i) {
     particles.push_back(Particle(random_x(rng), random_y(rng),
-        random_speed(rng), random_speed(rng),
-        20,
-        10,
+        random_speed_sign(rng) * random_speed(rng), random_speed_sign(rng) * random_speed(rng),
+        5,
+        1,
         sf::Color(random_color(rng), random_color(rng), random_color(rng))));
   }
   // for (auto i {0}; i < n; ++i) {

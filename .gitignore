@@ -13,3 +13,4 @@ lib/pkgconfig/*
 
 # Misc
 .DS_Store
+etc
