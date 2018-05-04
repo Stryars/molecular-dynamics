@@ -17,7 +17,7 @@ public:
   void Predict(Particle* a, double limit);
 
   // Redraw all particles
-  void Redraw(sf::RenderWindow& window, double limit);
+  void Redraw(sf::RenderWindow& window, sf::RectangleShape& box, double limit);
 
   // Simulates the system of particles for the specified amount of time
   void Simulate(double limit);

@@ -31,13 +31,13 @@ int main(int argc, char* argv[]) {
 
   // Initialization of the particles collection
   std::vector<Particle> particles {};
-  particles.push_back(Particle(WIDTH / 2, HEIGHT / 2, 30, 0, 20, 10, sf::Color(255, 0, 0)));
+  // particles.push_back(Particle(WIDTH / 2, HEIGHT / 2, 30, 0, 20, 10, sf::Color(255, 0, 0)));
   for (auto i {0}; i < n; ++i) {
     particles.push_back(Particle(random_x(rng), random_y(rng),
         random_speed(rng), random_speed(rng),
         20,
         10,
-        sf::Color(255, 255, 255)));
+        sf::Color(random_color(rng), random_color(rng), random_color(rng))));
   }
   // for (auto i {0}; i < n; ++i) {
   //   particles.push_back(Particle(WIDTH / 2, HEIGHT / 2,
