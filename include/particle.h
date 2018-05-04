@@ -31,7 +31,7 @@ public:
 
   // Returns the number of collisions involving this particle with either
   // walls or other particles.
-  int Count();
+  int Count() const;
 
   // Returns the amount of time for this particle to collide with the specified
   // particle, assuming no intervening collisions.
@@ -59,13 +59,19 @@ public:
   // Returns the kinetic energy of this particle.
   double KineticEnergy();
 
+  // Returns the particle's radius.
+  double GetRadius() const;
+
+  // Sets the particle's radius.
+  void SetRadius(double radius);
+
 private:
   double rx_, ry_;            // Position
   double vx_, vy_;            // Velocity
 
   int collisions_count_;   // Number of collisions so far
 
-  const double radius_;       // Radius
+  double radius_;       // Radius
   const double mass_;         // Mass
 
   sf::Color color_;           // Color
