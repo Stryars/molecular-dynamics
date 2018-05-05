@@ -16,10 +16,7 @@ public:
   // Initializes a copy of a particle.
   Particle(const Particle& p);
 
-  // Initializes a particle with random position and velocity.
-  Particle();
-
-  // Necessary for TimeToHit()
+  // Necessary for TimeToHit().
   bool operator==(const Particle& rhs) const;
 
   // Moves this particle in a straight line, based on its velocity,
@@ -27,7 +24,7 @@ public:
   void Move(double dt);
 
   // Draws this particle on the SFML window.
-  void Draw(sf::RenderWindow& window);
+  void Draw(sf::RenderWindow& window) const;
 
   // Returns the number of collisions involving this particle with either
   // walls or other particles.
@@ -35,15 +32,15 @@ public:
 
   // Returns the amount of time for this particle to collide with the specified
   // particle, assuming no intervening collisions.
-  double TimeToHit(Particle& that);
+  double TimeToHit(Particle& that) const;
 
   // Returns the amount of time for this particle to collide with a vertical
   // wall, assuming no intervening collisions.
-  double TimeToHitVerticalWall();
+  double TimeToHitVerticalWall() const;
 
   // Returns the amount of time for this particle to collide with a horizontal
   // wall, assuming no intervening collisions.
-  double TimeToHitHorizontalWall();
+  double TimeToHitHorizontalWall() const;
 
   // Updates the velocity of this particle and the specified particle according
   // to the laws of elastic collision.
@@ -57,7 +54,7 @@ public:
   void BounceOffHorizontalWall();
 
   // Returns the kinetic energy of this particle.
-  double KineticEnergy();
+  double KineticEnergy() const;
 
   // Returns the particle's radius.
   double GetRadius() const;

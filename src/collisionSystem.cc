@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <ctime>
 #include <sstream>
+#include <cmath>
 
 #include "SFML/Graphics.hpp"
 #include "main.h"
@@ -12,12 +13,13 @@
 #include "event.h"
 
 // Initializes a system with the specified collection of particles.
-CollisionSystem::CollisionSystem(const std::vector<Particle>& particles, double limit) :
-    Hz_ {50000},
+CollisionSystem::CollisionSystem(std::vector<Particle>& particles) :
+    Hz_ {10},
     time_ {0},
     particles_ {particles} {
-  for (unsigned int i {0}; i < particles_.size(); ++i) {
-    Predict(&(particles_[i]), limit);
+  // Initialize priority queue with collision events and redraw event
+  for (auto& particle : particles_) {
+    Predict(&particle);
   }
 
   // Redraw event
@@ -25,25 +27,19 @@ CollisionSystem::CollisionSystem(const std::vector<Particle>& particles, double 
 }
 
 // Updates priority queue with all new events for particle a.
-void CollisionSystem::Predict(Particle* a, double limit) {
+void CollisionSystem::Predict(Particle* a) {
   if (a != nullptr) {
     // Particle-particle collisions
-    for (unsigned int i {0}; i < particles_.size(); ++i) {
-      double dt {a->TimeToHit(particles_[i])};
-      if (time_ + dt <= limit) {
-        pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a, &(particles_[i])));
-      }
+    for (auto& particle : particles_) {
+      double dt {a->TimeToHit(particle)};
+      pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a, &(particle)));
     }
 
     // Particle-wall collisions
     double dtX {a->TimeToHitVerticalWall()};
     double dtY {a->TimeToHitHorizontalWall()};
-    if (time_ + dtX <= limit) {
-      pq_.push(Event(Event::Type::kVerticalWall, time_ + dtX, a, nullptr));
-    }
-    if (time_ + dtY <= limit) {
-      pq_.push(Event(Event::Type::kHorizontalWall, time_ + dtY, nullptr, a));
-    }
+    pq_.push(Event(Event::Type::kVerticalWall, time_ + dtX, a, nullptr));
+    pq_.push(Event(Event::Type::kHorizontalWall, time_ + dtY, nullptr, a));
   }
 }
 
@@ -51,15 +47,13 @@ void CollisionSystem::Predict(Particle* a, double limit) {
 void CollisionSystem::Redraw(sf::RenderWindow& window, sf::RectangleShape& box) {
   window.draw(box);
 
-  for (unsigned int i {0}; i < particles_.size(); ++i) {
-    particles_[i].Draw(window);
+  for (const auto& particle : particles_) {
+    particle.Draw(window);
   }
-
-  window.display();
 }
 
 // Pauses the simulation.
-void CollisionSystem::Pause(sf::RenderWindow& window) {
+void CollisionSystem::Pause(sf::RenderWindow& window, sf::Keyboard::Key pause_key) {
   bool pause {true};
 
   while (pause == true) {
@@ -78,7 +72,7 @@ void CollisionSystem::Pause(sf::RenderWindow& window) {
           break;
         case sf::Event::KeyReleased:
           if (event.type == sf::Event::KeyReleased
-              && event.key.code == sf::Keyboard::Space) {
+              && event.key.code == pause_key) {
             pause = false;
           }
           break;
@@ -90,14 +84,30 @@ void CollisionSystem::Pause(sf::RenderWindow& window) {
 }
 
 // Displays physical quantities (temperature, pressure, etc.) and helper text.
-void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window, sf::Font font, time_t elapsed_time, int collisions, double average_kinetic_energy) {
+void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window, sf::Font& font, time_t elapsed_time, int collisions, double average_kinetic_energy) {
   sf::Text space_help;
   space_help.setFont(font);
-  space_help.setString("Press Space to pause the simulation");
+  space_help.setString("Press Space to pause/unpause or start the simulation.");
   space_help.setCharacterSize(20);
   space_help.setFillColor(sf::Color::White);
-  space_help.setPosition(0, HEIGHT - 60);
+  space_help.setPosition(0, HEIGHT - 90);
   window.draw(space_help);
+
+  sf::Text shift_help;
+  shift_help.setFont(font);
+  shift_help.setString("Press Left Shift to display the velocity histogram.");
+  shift_help.setCharacterSize(20);
+  shift_help.setFillColor(sf::Color::White);
+  shift_help.setPosition(0, HEIGHT - 60);
+  window.draw(shift_help);
+
+  sf::Text escape_help;
+  escape_help.setFont(font);
+  escape_help.setString("Press Escape to quit the simulation.");
+  escape_help.setCharacterSize(20);
+  escape_help.setFillColor(sf::Color::White);
+  escape_help.setPosition(0, HEIGHT - 30);
+  window.draw(escape_help);
 
   const double boltzmann_constant = 1.3806503e-23;
 
@@ -110,7 +120,11 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window, sf::Font 
 
   sf::Text collisions_text;
   collisions_text.setFont(font);
-  collisions_text.setString("Collisions per second: " + std::to_string(collisions / elapsed_time));
+  std::string collisions_per_second {"0"};
+  if (elapsed_time != 0) {
+    collisions_per_second = std::to_string(collisions / elapsed_time);
+  }
+  collisions_text.setString("Collisions per second: " + collisions_per_second);
   collisions_text.setCharacterSize(20);
   collisions_text.setFillColor(sf::Color::White);
   collisions_text.setPosition(0, 30);
@@ -130,7 +144,8 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window, sf::Font 
   temperature_text.setPosition(0, 60);
   window.draw(temperature_text);
 
-  double pressure {(2.0 / 3.0) * average_kinetic_energy * particles_.size() / (HEIGHT * 0.6 * DISTANCE_UNIT * WIDTH * 0.6 * DISTANCE_UNIT)};
+  double pressure {(2.0 / 3.0) * average_kinetic_energy * particles_.size()
+      / (HEIGHT * 0.6 * DISTANCE_UNIT * WIDTH * 0.6 * DISTANCE_UNIT)};
   std::ostringstream streamPress;
   streamPress << pressure;
   std::string strPress = streamPress.str();
@@ -144,8 +159,41 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window, sf::Font 
   window.draw(pressure_text);
 }
 
+// Display the velocity histogram.
+void CollisionSystem::DisplayVelocityHistogram(sf::RenderWindow& window) {
+  const int max_speed {1500};
+  const float bucket_size {20};
+  int number_of_buckets {static_cast<int>(ceil(max_speed / bucket_size))};
+
+  std::vector<int> speed_histogram(number_of_buckets);
+
+  for (auto& particle : particles_) {
+    int bucket {static_cast<int>(floor(particle.GetSpeed() * DISTANCE_UNIT / bucket_size))};
+    speed_histogram[bucket]++;
+  }
+
+  window.clear(sf::Color::Black);
+
+  for (auto i {0}; i < number_of_buckets; ++i) {
+    sf::RectangleShape line(sf::Vector2f(1, speed_histogram[i] * 20));
+    line.rotate(180);
+    line.setFillColor(sf::Color::White);
+    line.setPosition(i * bucket_size, 900);
+    window.draw(line);
+  }
+
+  sf::RectangleShape horizontal_line(sf::Vector2f(WIDTH, 5));
+  horizontal_line.setFillColor(sf::Color::White);
+  horizontal_line.setPosition(0, 900);
+  window.draw(horizontal_line);
+
+  window.display();
+
+  Pause(window, sf::Keyboard::LShift);
+}
+
 // Simulates the system of particles for the specified amount of time
-void CollisionSystem::Simulate(double limit) {
+void CollisionSystem::Simulate() {
   // Initialize the window
   sf::RenderWindow window {sf::VideoMode(WIDTH, HEIGHT),
       "Molecular Dynamics", sf::Style::Titlebar | sf::Style::Close};
@@ -162,18 +210,26 @@ void CollisionSystem::Simulate(double limit) {
   sf::RectangleShape simulation_box(sf::Vector2f(WIDTH * 0.6, HEIGHT * 0.6));
   simulation_box.setPosition(WIDTH * 0.2, HEIGHT * 0.2);
   simulation_box.setFillColor(sf::Color::Black);
-  simulation_box.setOutlineThickness(10);
+  simulation_box.setOutlineThickness(5);
   simulation_box.setOutlineColor(sf::Color::White);
 
 
   // Initialize the timer and collisions counter
   time_t start_time {time(NULL)};
+  time_t elapsed_time {0};
   int collisions {0};
 
-  // Initialize priority queue with collision events and redraw event
-  bool display_simulation {true};
+  window.clear(sf::Color::Black);
+
+  DisplayCharacteristics(window, source_code_pro, elapsed_time, collisions, 0);
+  Redraw(window, simulation_box);
+
+  window.display();
+
+  Pause(window, sf::Keyboard::Space);
 
   while (window.isOpen() && !pq_.empty()) {
+    printf("Collisions: %d\n", collisions);
     sf::Event event;
     while (window.pollEvent(event)) {
       switch (event.type) {
@@ -186,28 +242,10 @@ void CollisionSystem::Simulate(double limit) {
           }
           break;
         case sf::Event::KeyReleased:
-          if (event.key.code == sf::Keyboard::LShift || event.key.code == sf::Keyboard::RShift) {
-            window.clear(sf::Color::Black);
-            display_simulation = !display_simulation;
-
-            //std::map<int, int> speeds;
-            for (unsigned int i {0}; i < particles_.size(); ++i) {
-              //speeds[particles_[i].GetSpeed()]++;
-              sf::RectangleShape line(sf::Vector2f(1, 100));
-              line.setFillColor(sf::Color::White);
-              line.setPosition(particles_[i].GetSpeed() / 1000, 900);
-              window.draw(line);
-            }
-
-            sf::RectangleShape horizontal_line(sf::Vector2f(1900, 5));
-            horizontal_line.setFillColor(sf::Color::White);
-            horizontal_line.setPosition(10, 1000);
-            window.draw(horizontal_line);
-
-            window.display();
-
+          if (event.key.code == sf::Keyboard::LShift) {
+            DisplayVelocityHistogram(window);
           } else if (event.key.code == sf::Keyboard::Space) {
-            Pause(window);
+            Pause(window, sf::Keyboard::Space);
           }
           break;
         default:
@@ -226,9 +264,9 @@ void CollisionSystem::Simulate(double limit) {
       double average_kinetic_energy {0.0};
 
       // Physical collision, update positions and simulation clock and calculate average kinetic energy
-      for (unsigned int i {0}; i < particles_.size(); ++i) {
-        particles_[i].Move(e.GetTime() - time_);
-        average_kinetic_energy += particles_[i].KineticEnergy();
+      for (auto& particle : particles_) {
+        particle.Move(e.GetTime() - time_);
+        average_kinetic_energy += particle.KineticEnergy();
       }
       average_kinetic_energy /= particles_.size();
       time_ = e.GetTime();
@@ -252,21 +290,17 @@ void CollisionSystem::Simulate(double limit) {
           break;
         // Redraw event
         case Event::Type::kRedraw:
-          if (display_simulation == true) {
-            window.clear(sf::Color::Black);
+          window.clear(sf::Color::Black);
 
-            time_t elapsed_time = time(NULL) - start_time;
-            if (elapsed_time > 0) {
-              DisplayCharacteristics(window, source_code_pro, elapsed_time, collisions, average_kinetic_energy);
-            }
+          elapsed_time = time(NULL) - start_time;
+          DisplayCharacteristics(window, source_code_pro, elapsed_time,
+              collisions, average_kinetic_energy);
 
-            Redraw(window, simulation_box);
-          }
+          Redraw(window, simulation_box);
 
-          if (time_ < limit) {
-              pq_.push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_, nullptr, nullptr));
-          }
+          window.display();
 
+          pq_.push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_, nullptr, nullptr));
           break;
         default:
           printf("Error: event type invalid.\n");
@@ -274,8 +308,8 @@ void CollisionSystem::Simulate(double limit) {
           break;
       }
 
-      Predict(a, limit);
-      Predict(b, limit);
+      Predict(a);
+      Predict(b);
     }
   }
 }

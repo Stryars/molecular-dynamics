@@ -37,20 +37,7 @@ Particle::Particle(const Particle& p) :
   circle_.setPosition(rx_, ry_);
 }
 
-// Initializes a particle with random position and velocity.
-Particle::Particle() :
-    rx_ {0.5}, ry_ {0.5},
-    vx_ {0.005}, vy_{0.005},
-    collisions_count_ {0},
-    radius_ {0.01}, mass_ {0.5},
-    color_ {sf::Color::Black} {
-  circle_.setRadius(radius_);
-  circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
-  circle_.setFillColor(color_);
-  circle_.setPosition(rx_, ry_);
-}
-
-// Necessary for TimeToHit()
+// Necessary for TimeToHit().
 bool Particle::operator==(const Particle& rhs) const {
   return (rx_ == rhs.rx_);
 }
@@ -60,11 +47,11 @@ bool Particle::operator==(const Particle& rhs) const {
 void Particle::Move(double dt) {
   rx_ += vx_ * dt;
   ry_ += vy_ * dt;
+  circle_.setPosition(rx_, ry_);
 }
 
 // Draws this particle on the SFML window.
-void Particle::Draw(sf::RenderWindow& window) {
-  circle_.setPosition(rx_, ry_);
+void Particle::Draw(sf::RenderWindow& window) const {
   window.draw(circle_);
 }
 
@@ -76,7 +63,7 @@ int Particle::Count() const {
 
 // Returns the amount of time for this particle to collide with the specified
 // particle, assuming no intervening collisions.
-double Particle::TimeToHit(Particle& that) {
+double Particle::TimeToHit(Particle& that) const {
   if (*this == that) {
     return INFINITY;
   }
@@ -112,7 +99,7 @@ double Particle::TimeToHit(Particle& that) {
 
 // Returns the amount of time for this particle to collide with a vertical
 // wall, assuming no intervening collisions.
-double Particle::TimeToHitVerticalWall() {
+double Particle::TimeToHitVerticalWall() const {
   if (vx_ > 0) {
     return (0.8 * WIDTH - rx_ - radius_) / vx_;
   } else if (vx_ < 0) {
@@ -124,7 +111,7 @@ double Particle::TimeToHitVerticalWall() {
 
 // Returns the amount of time for this particle to collide with a horizontal
 // wall, assuming no intervening collisions.
-double Particle::TimeToHitHorizontalWall() {
+double Particle::TimeToHitHorizontalWall() const {
   if (vy_ > 0) {
     return (0.8 * HEIGHT - ry_ - radius_) / vy_;
   } else if (vy_ < 0) {
@@ -181,8 +168,9 @@ void Particle::BounceOffHorizontalWall() {
 }
 
 // Returns the kinetic energy of this particle.
-double Particle::KineticEnergy() {
-  return 0.5 * mass_ * MASS_UNIT * (vx_ * DISTANCE_UNIT * vx_ * DISTANCE_UNIT + vy_ * DISTANCE_UNIT * vy_ * DISTANCE_UNIT);
+double Particle::KineticEnergy() const {
+  return 0.5 * mass_ * MASS_UNIT * (vx_ * DISTANCE_UNIT * vx_ * DISTANCE_UNIT
+      + vy_ * DISTANCE_UNIT * vy_ * DISTANCE_UNIT);
 }
 
 // Returns the particle's radius.

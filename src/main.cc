@@ -23,23 +23,29 @@ int main(int argc, char* argv[]) {
   }
 
   std::mt19937 rng {std::random_device()()};
-  std::uniform_real_distribution<double> random_x(0.2 * WIDTH + 40, 0.8 * WIDTH - 40);
-  std::uniform_real_distribution<double> random_y(0.2 * HEIGHT + 40, 0.8 * HEIGHT - 40);
-  std::uniform_real_distribution<double> random_speed(400000, 600000);
-  std::uniform_real_distribution<double> random_speed_sign(-1, 1);
-  std::uniform_real_distribution<double> random_radius(20, 30);
+  std::uniform_real_distribution<double> random_speed(-5, 5);
   std::uniform_int_distribution<int> random_color(0, 255);
 
   // Initialization of the particles collection
   std::vector<Particle> particles {};
-  // particles.push_back(Particle(WIDTH / 2, HEIGHT / 2, 30, 0, 40, 10, sf::Color(255, 0, 0)));
-  for (auto i {0}; i < n; ++i) {
-    particles.push_back(Particle(random_x(rng), random_y(rng),
-        random_speed_sign(rng) * random_speed(rng), random_speed_sign(rng) * random_speed(rng),
-        5,
-        1,
-        sf::Color(random_color(rng), random_color(rng), random_color(rng))));
+
+  int particle_radius {30};
+  double x {0.2 * WIDTH + particle_radius * 2}, y {0};
+  while (x + particle_radius < 0.8 * WIDTH) {
+    y = 0.2 * HEIGHT + particle_radius * 2;
+    while (y + particle_radius < 0.8 * HEIGHT) {
+      particles.push_back(Particle(x, y,
+          random_speed(rng), random_speed(rng),
+          particle_radius,
+          1,
+          sf::Color(random_color(rng), random_color(rng), random_color(rng))));
+
+      y += 3 * particle_radius;
+    }
+
+    x += 3 * particle_radius;
   }
+
   // for (auto i {0}; i < n; ++i) {
   //   particles.push_back(Particle(WIDTH / 2, HEIGHT / 2,
   //       10 * cos((i * 2 * M_PI) / n), 10 * sin((i * 2 * M_PI) / n),
@@ -48,11 +54,10 @@ int main(int argc, char* argv[]) {
   // }
 
   // Initialization of the collision system
-  const int limit {100000};
-  CollisionSystem system {particles, limit};
+  CollisionSystem system {particles};
 
   // Initialization of the simulation
-  system.Simulate(limit);
+  system.Simulate();
 
   return 0;
 }
