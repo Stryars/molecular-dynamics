@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
   // Initialization of the particles collection
   std::vector<Particle> particles {};
 
-  int particle_radius {30};
+  int particle_radius {60};
   double x {0.2 * WIDTH + particle_radius * 2}, y {0};
   while (x + particle_radius < 0.8 * WIDTH) {
     y = 0.2 * HEIGHT + particle_radius * 2;
@@ -38,20 +38,13 @@ int main(int argc, char* argv[]) {
           random_speed(rng), random_speed(rng),
           particle_radius,
           1,
-          sf::Color(random_color(rng), random_color(rng), random_color(rng))));
+          sf::Color(sf::Color::White)));
 
       y += 3 * particle_radius;
     }
 
     x += 3 * particle_radius;
   }
-
-  // for (auto i {0}; i < n; ++i) {
-  //   particles.push_back(Particle(WIDTH / 2, HEIGHT / 2,
-  //       10 * cos((i * 2 * M_PI) / n), 10 * sin((i * 2 * M_PI) / n),
-  //       20, 10 * i,
-  //       sf::Color(random_color(rng), random_color(rng), random_color(rng))));
-  // }
 
   // Initialization of the collision system
   CollisionSystem system {particles};

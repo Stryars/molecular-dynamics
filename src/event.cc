@@ -12,6 +12,7 @@ Event::Event(Event::Type type, double t, Particle* a, Particle* b) :
   } else {
     collisions_count_a_ = -1;
   }
+  
   if (b != nullptr) {
     collisions_count_b_ = b->Count();
   } else {

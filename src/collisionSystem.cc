@@ -13,8 +13,8 @@
 #include "event.h"
 
 // Initializes a system with the specified collection of particles.
-CollisionSystem::CollisionSystem(std::vector<Particle>& particles) :
-    Hz_ {10},
+CollisionSystem::CollisionSystem(const std::vector<Particle>& particles) :
+    Hz_ {3},
     time_ {0},
     particles_ {particles} {
   // Initialize priority queue with collision events and redraw event
@@ -32,7 +32,10 @@ void CollisionSystem::Predict(Particle* a) {
     // Particle-particle collisions
     for (auto& particle : particles_) {
       double dt {a->TimeToHit(particle)};
-      pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a, &(particle)));
+      if (dt > 0) {
+        pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a,
+            &(particle)));
+      }
     }
 
     // Particle-wall collisions
@@ -44,7 +47,8 @@ void CollisionSystem::Predict(Particle* a) {
 }
 
 // Redraws all particles.
-void CollisionSystem::Redraw(sf::RenderWindow& window, sf::RectangleShape& box) {
+void CollisionSystem::Redraw(sf::RenderWindow& window,
+    sf::RectangleShape& box) {
   window.draw(box);
 
   for (const auto& particle : particles_) {
@@ -53,7 +57,8 @@ void CollisionSystem::Redraw(sf::RenderWindow& window, sf::RectangleShape& box) 
 }
 
 // Pauses the simulation.
-void CollisionSystem::Pause(sf::RenderWindow& window, sf::Keyboard::Key pause_key) {
+void CollisionSystem::Pause(sf::RenderWindow& window,
+    sf::Keyboard::Key pause_key) {
   bool pause {true};
 
   while (pause == true) {
@@ -84,7 +89,9 @@ void CollisionSystem::Pause(sf::RenderWindow& window, sf::Keyboard::Key pause_ke
 }
 
 // Displays physical quantities (temperature, pressure, etc.) and helper text.
-void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window, sf::Font& font, time_t elapsed_time, int collisions, double average_kinetic_energy) {
+void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window,
+    sf::Font& font, time_t elapsed_time, int collisions,
+    double average_kinetic_energy) {
   sf::Text space_help;
   space_help.setFont(font);
   space_help.setString("Press Space to pause/unpause or start the simulation.");
@@ -113,7 +120,8 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window, sf::Font&
 
   sf::Text particles_text;
   particles_text.setFont(font);
-  particles_text.setString("Particles count: " + std::to_string(particles_.size()));
+  particles_text.setString("Particles count: "
+      + std::to_string(particles_.size()));
   particles_text.setCharacterSize(20);
   particles_text.setFillColor(sf::Color::White);
   window.draw(particles_text);
@@ -130,7 +138,8 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window, sf::Font&
   collisions_text.setPosition(0, 30);
   window.draw(collisions_text);
 
-  double temperature {(2.0 / 3.0) * average_kinetic_energy / boltzmann_constant};
+  double temperature {(2.0 / 3.0)
+      * average_kinetic_energy / boltzmann_constant};
 
   std::ostringstream streamTemp;
   streamTemp << temperature;
@@ -168,7 +177,8 @@ void CollisionSystem::DisplayVelocityHistogram(sf::RenderWindow& window) {
   std::vector<int> speed_histogram(number_of_buckets);
 
   for (auto& particle : particles_) {
-    int bucket {static_cast<int>(floor(particle.GetSpeed() * DISTANCE_UNIT / bucket_size))};
+    int bucket {static_cast<int>(floor(particle.GetSpeed()
+        * DISTANCE_UNIT / bucket_size))};
     speed_histogram[bucket]++;
   }
 
@@ -184,7 +194,7 @@ void CollisionSystem::DisplayVelocityHistogram(sf::RenderWindow& window) {
 
   sf::RectangleShape horizontal_line(sf::Vector2f(WIDTH, 5));
   horizontal_line.setFillColor(sf::Color::White);
-  horizontal_line.setPosition(0, 900);
+  horizontal_line.setPosition(0, 9 * HEIGHT / 10);
   window.draw(horizontal_line);
 
   window.display();
@@ -259,11 +269,26 @@ void CollisionSystem::Simulate() {
     if (e.IsValid()) {
       Particle* a {e.GetParticleA()};
       Particle* b {e.GetParticleB()};
+
+      if (a != nullptr) {
+        window.clear(sf::Color::Black);
+        a->SetColor(sf::Color::Red);
+        Redraw(window, simulation_box);
+        window.display();
+      }
+      if (b != nullptr) {
+        window.clear(sf::Color::Black);
+        b->SetColor(sf::Color::Red);
+        Redraw(window, simulation_box);
+        window.display();
+      }
+
       Event::Type event_type {e.GetType()};
 
       double average_kinetic_energy {0.0};
 
-      // Physical collision, update positions and simulation clock and calculate average kinetic energy
+      // Physical collision, update positions and simulation clock and
+      // calculate average kinetic energy
       for (auto& particle : particles_) {
         particle.Move(e.GetTime() - time_);
         average_kinetic_energy += particle.KineticEnergy();
@@ -277,16 +302,19 @@ void CollisionSystem::Simulate() {
         case Event::Type::kParticleParticle:
           a->BounceOff(*b);
           collisions++;
+          Pause(window, sf::Keyboard::Space);
           break;
         // Particle-vertical wall collision
         case Event::Type::kVerticalWall:
           a->BounceOffVerticalWall();
           collisions++;
+          Pause(window, sf::Keyboard::Space);
           break;
         // Particle-horizontal wall collision
         case Event::Type::kHorizontalWall:
           b->BounceOffHorizontalWall();
           collisions++;
+          Pause(window, sf::Keyboard::Space);
           break;
         // Redraw event
         case Event::Type::kRedraw:
@@ -300,7 +328,8 @@ void CollisionSystem::Simulate() {
 
           window.display();
 
-          pq_.push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_, nullptr, nullptr));
+          pq_.push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_,
+              nullptr, nullptr));
           break;
         default:
           printf("Error: event type invalid.\n");
@@ -310,6 +339,13 @@ void CollisionSystem::Simulate() {
 
       Predict(a);
       Predict(b);
+
+      if (a != nullptr) {
+        a->SetColor(sf::Color::White);
+      }
+      if (b != nullptr) {
+        b->SetColor(sf::Color::White);
+      }
     }
   }
 }

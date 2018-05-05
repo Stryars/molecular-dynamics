@@ -13,9 +13,6 @@ public:
   Particle(double rx, double ry, double vx, double vy, const double radius,
     const double mass, sf::Color color);
 
-  // Initializes a copy of a particle.
-  Particle(const Particle& p);
-
   // Necessary for TimeToHit().
   bool operator==(const Particle& rhs) const;
 
@@ -64,6 +61,9 @@ public:
 
   // Returns the particle's speed.
   double GetSpeed() const;
+
+  // Sets the particle's color.
+  void SetColor(sf::Color color);
 
 private:
   double rx_, ry_;            // Position

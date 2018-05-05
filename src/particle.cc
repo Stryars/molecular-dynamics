@@ -24,19 +24,6 @@ Particle::Particle(double rx, double ry, double vx, double vy,
   circle_.setPosition(rx_, ry);
 }
 
-// Initializes a copy of a particle.
-Particle::Particle(const Particle& p) :
-    rx_ {p.rx_}, ry_ {p.ry_},
-    vx_ {p.vx_}, vy_{p.vy_},
-    collisions_count_ {0},
-    radius_ {p.radius_}, mass_ {p.mass_},
-    color_ {p.color_} {
-  circle_.setRadius(radius_);
-  circle_.setOrigin(circle_.getRadius(), circle_.getRadius());
-  circle_.setFillColor(color_);
-  circle_.setPosition(rx_, ry_);
-}
-
 // Necessary for TimeToHit().
 bool Particle::operator==(const Particle& rhs) const {
   return (rx_ == rhs.rx_);
@@ -79,7 +66,7 @@ double Particle::TimeToHit(Particle& that) const {
   double dvdv {dvx * dvx + dvy * dvy};
   // Dot product dr.dr
   double drdr {dx * dx + dy * dy};
-  if (dvdr > 0) {
+  if (dvdr >= 0) {
     return INFINITY;
   }
 
@@ -188,4 +175,11 @@ void Particle::SetRadius(double radius) {
 // Returns the particle's speed.
 double Particle::GetSpeed() const {
   return sqrt(vx_ * vx_ + vy_ * vy_);
+}
+
+// Sets the particle's color.
+void Particle::SetColor(sf::Color color) {
+  printf("Set Color\n");
+  color_ = color;
+  circle_.setFillColor(color_);
 }
