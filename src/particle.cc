@@ -72,7 +72,7 @@ double Particle::TimeToHit(Particle& that) const {
 
   // Distance between particles centers
   double sigma {radius_ + that.radius_};
-  if (drdr < sigma * sigma) {
+  if (drdr - sigma * sigma < 0) {
     printf("Overlapping particles: %ld.\n", time(NULL));
   }
 
@@ -179,7 +179,6 @@ double Particle::GetSpeed() const {
 
 // Sets the particle's color.
 void Particle::SetColor(sf::Color color) {
-  printf("Set Color\n");
   color_ = color;
   circle_.setFillColor(color_);
 }

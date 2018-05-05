@@ -32,7 +32,7 @@ void CollisionSystem::Predict(Particle* a) {
     // Particle-particle collisions
     for (auto& particle : particles_) {
       double dt {a->TimeToHit(particle)};
-      if (dt > 0) {
+      if (dt >= 0) {
         pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a,
             &(particle)));
       }
@@ -265,6 +265,42 @@ void CollisionSystem::Simulate() {
 
     Event e = pq_.top();
     pq_.pop();
+
+    // Trying to see if overlapping is due to an invalid event. Doesn't seem so.
+    if (!e.IsValid()) {
+      Particle* a {e.GetParticleA()};
+      Particle* b {e.GetParticleB()};
+
+      if (a != nullptr) {
+        window.clear(sf::Color::Black);
+        a->SetColor(sf::Color::Blue);
+        Redraw(window, simulation_box);
+        window.display();
+      }
+      if (b != nullptr) {
+        window.clear(sf::Color::Black);
+        b->SetColor(sf::Color::Blue);
+        Redraw(window, simulation_box);
+        window.display();
+      }
+
+      printf("Invalid Event Time: %lf\n", e.GetTime());
+
+      Pause(window, sf::Keyboard::Space);
+
+      if (a != nullptr) {
+        window.clear(sf::Color::Black);
+        a->SetColor(sf::Color::White);
+        Redraw(window, simulation_box);
+        window.display();
+      }
+      if (b != nullptr) {
+        window.clear(sf::Color::Black);
+        b->SetColor(sf::Color::White);
+        Redraw(window, simulation_box);
+        window.display();
+      }
+    }
 
     if (e.IsValid()) {
       Particle* a {e.GetParticleA()};
