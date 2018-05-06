@@ -6,6 +6,6 @@
 #define WIDTH 1900
 #define HEIGHT 1000
 
-// Equivalence pixel -> distance in meters
-#define DISTANCE_UNIT 152e-13
-#define MASS_UNIT 2.6787702e-26
+#define SPEED_UNIT 1000
+#define DISTANCE_UNIT 188e-12
+#define MASS_UNIT 6.6335209e-23

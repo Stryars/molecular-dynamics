@@ -24,7 +24,7 @@ public:
 
   // Displays physical quantities (temperature, pressure, etc.) and helper text.
   void DisplayCharacteristics(sf::RenderWindow& window, sf::Font& font,
-      time_t elapsed_time, int collisions, double average_kinetic_energy);
+      time_t elapsed_time, int collisions, double average_kinetic_energy, sf::Time frameTime);
 
   // Display the velocity histogram.
   void DisplayVelocityHistogram(sf::RenderWindow& window);

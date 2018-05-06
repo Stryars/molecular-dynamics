@@ -11,26 +11,24 @@
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
-    printf("Please enter the number of particles to simulate.\n");
+    printf("Please enter the particles' radius.\n");
     return 1;
   }
 
   std::istringstream ss {argv[1]};
-  double n {0};
-  if (!(ss >> n)) {
+  int particle_radius {0};
+  if (!(ss >> particle_radius)) {
     std::cerr << "Invalid number " << argv[1] << '\n';
     return 1;
   }
 
-  // std::mt19937 rng {std::random_device()()};
-  std::mt19937 rng {1};
-  std::uniform_real_distribution<double> random_speed(-5, 5);
+  std::mt19937 rng {std::random_device()()};
+  std::uniform_real_distribution<double> random_speed(-1, 1);
   std::uniform_int_distribution<int> random_color(0, 255);
 
   // Initialization of the particles collection
   std::vector<Particle> particles {};
 
-  int particle_radius {20};
   double x {0.2 * WIDTH + particle_radius * 2}, y {0};
   while (x + particle_radius < 0.8 * WIDTH) {
     y = 0.2 * HEIGHT + particle_radius * 2;
