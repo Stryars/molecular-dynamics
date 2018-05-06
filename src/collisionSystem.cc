@@ -14,7 +14,7 @@
 
 // Initializes a system with the specified collection of particles.
 CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
-    Hz_ {1},
+    Hz_ {10},
     time_ {0},
     particles_ {particles} {
   // Initialize priority queue with collision events and redraw event
@@ -32,7 +32,7 @@ void CollisionSystem::Predict(Particle* a) {
     // Particle-particle collisions
     for (auto& particle : particles_) {
       double dt {a->TimeToHit(particle)};
-      if (dt >= 0) {
+      if (dt != INFINITY) {
         pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a,
             &(particle)));
       }
@@ -40,9 +40,13 @@ void CollisionSystem::Predict(Particle* a) {
 
     // Particle-wall collisions
     double dtX {a->TimeToHitVerticalWall()};
+    if (dtX != INFINITY) {
+      pq_.push(Event(Event::Type::kVerticalWall, time_ + dtX, a, nullptr));
+    }
     double dtY {a->TimeToHitHorizontalWall()};
-    pq_.push(Event(Event::Type::kVerticalWall, time_ + dtX, a, nullptr));
-    pq_.push(Event(Event::Type::kHorizontalWall, time_ + dtY, nullptr, a));
+    if (dtY != INFINITY) {
+      pq_.push(Event(Event::Type::kHorizontalWall, time_ + dtY, nullptr, a));
+    }
   }
 }
 
@@ -324,6 +328,19 @@ void CollisionSystem::Simulate() {
         printf("Error: event type invalid.\n");
         exit(1);
         break;
+    }
+
+    std::vector<Event> temp_events {};
+    while (!pq_.empty()) {
+      Event temp_e {pq_.top()};
+      pq_.pop();
+      if (temp_e.IsValid() && temp_e.GetTime() != INFINITY) {
+        temp_events.push_back(temp_e);
+      }
+    }
+
+    for (const auto& ev : temp_events) {
+      pq_.push(ev);
     }
 
     Predict(a);

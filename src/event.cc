@@ -26,7 +26,7 @@ bool Event::operator>(const Event& rhs) const {
 }
 
 // Has any collision occurred between when event was created and now?
-bool Event::IsValid() {
+bool Event::IsValid() const {
   if (a_ != nullptr && a_->Count() != collisions_count_a_) {
     return false;
   }
