@@ -12,7 +12,7 @@ Event::Event(Event::Type type, double t, Particle* a, Particle* b) :
   } else {
     collisions_count_a_ = -1;
   }
-  
+
   if (b != nullptr) {
     collisions_count_b_ = b->Count();
   } else {
@@ -55,4 +55,26 @@ Particle* Event::GetParticleB() const {
 // Returns event type
 Event::Type Event::GetType() const {
   return type_;
+}
+
+// Prints event type.
+void Event::PrintType() const {
+  printf("Event type: ");
+  switch(type_) {
+    case Event::Type::kParticleParticle:
+      printf("Particle-Particle\n");
+      break;
+    case Event::Type::kHorizontalWall:
+      printf("Particle-Horizontal wall\n");
+      break;
+    case Event::Type::kVerticalWall:
+      printf("Particle-Vertical wall\n");
+      break;
+    case Event::Type::kRedraw:
+      // printf("Redraw\n");
+      break;
+    default:
+      printf("None\n");
+      break;
+  }
 }

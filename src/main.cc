@@ -22,7 +22,8 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  std::mt19937 rng {std::random_device()()};
+  // std::mt19937 rng {std::random_device()()};
+  std::mt19937 rng {1};
   std::uniform_real_distribution<double> random_speed(-5, 5);
   std::uniform_int_distribution<int> random_color(0, 255);
 

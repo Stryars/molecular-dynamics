@@ -16,26 +16,29 @@ public:
     kRedraw
   };
 
-  // Initializes a new event to occur at time t, involving particles a and b
+  // Initializes a new event to occur at time t, involving particles a and b.
   Event(Type type, double t, Particle* a, Particle* b);
 
-  // > operator for the piority queue
+  // > operator for the piority queue.
   bool operator>(const Event& rhs) const;
 
   // Has any collision occurred between when event was created and now?
   bool IsValid();
 
-  // Returns the time that event is scheduled to occur
+  // Returns the time that event is scheduled to occur.
   double GetTime() const;
 
-  // Returns particle A
+  // Returns particle A.
   Particle* GetParticleA() const;
 
-  // Returns particle B
+  // Returns particle B.
   Particle* GetParticleB() const;
 
-  // Returns event type
+  // Returns event type.
   Type GetType() const;
+
+  // Prints event type.
+  void PrintType() const;
 
 private:
   // Event type
