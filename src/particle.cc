@@ -51,7 +51,8 @@ int Particle::Count() const {
 // Returns the amount of time for this particle to collide with the specified
 // particle, assuming no intervening collisions.
 double Particle::TimeToHit(Particle& that) const {
-  if (*this == that) {
+  if (this == &that) {
+    printf("THIS = THAT\n");
     return INFINITY;
   }
 

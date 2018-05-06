@@ -11,7 +11,7 @@
 class CollisionSystem {
 public:
   // Initializes a system with the specified collection of particles.
-  CollisionSystem(const std::vector<Particle>& particles);
+  CollisionSystem(std::vector<Particle> particles);
 
   // Updates priority queue with all new events for particle a.
   void Predict(Particle* a);

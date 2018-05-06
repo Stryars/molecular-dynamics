@@ -13,8 +13,8 @@
 #include "event.h"
 
 // Initializes a system with the specified collection of particles.
-CollisionSystem::CollisionSystem(const std::vector<Particle>& particles) :
-    Hz_ {3},
+CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
+    Hz_ {1},
     time_ {0},
     particles_ {particles} {
   // Initialize priority queue with collision events and redraw event
