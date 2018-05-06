@@ -23,7 +23,7 @@ public:
   bool operator>(const Event& rhs) const;
 
   // Has any collision occurred between when event was created and now?
-  bool IsValid();
+  bool IsValid() const;
 
   // Returns the time that event is scheduled to occur.
   double GetTime() const;
