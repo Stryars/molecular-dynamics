@@ -22,8 +22,6 @@ CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
     Predict(&particle);
   }
 
-  printf("%lu\n", pq_.size());
-
   // Redraw event
   pq_.push(Event(Event::Type::kRedraw, 0, nullptr, nullptr));
 }
@@ -225,7 +223,6 @@ void CollisionSystem::Simulate() {
   simulation_box.setOutlineThickness(5);
   simulation_box.setOutlineColor(sf::Color::White);
 
-
   // Initialize the timer and collisions counter
   time_t start_time {time(nullptr)};
   time_t elapsed_time {0};
@@ -241,8 +238,8 @@ void CollisionSystem::Simulate() {
   Pause(window, sf::Keyboard::Space);
 
   while (window.isOpen() && !pq_.empty()) {
-    printf("Collisions: %d\n", collisions);
-    printf("Time: %lf\n", time_);
+    // printf("Collisions: %d\n", collisions);
+    // printf("Time: %lf\n", time_);
     printf("PQ size: %lu\n", pq_.size());
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -260,52 +257,6 @@ void CollisionSystem::Simulate() {
             DisplayVelocityHistogram(window);
           } else if (event.key.code == sf::Keyboard::Space) {
             Pause(window, sf::Keyboard::Space);
-          } else if (event.key.code == sf::Keyboard::RShift) {
-            Pause(window, sf::Keyboard::RShift);
-
-            while (!pq_.empty()) {
-              Event e = pq_.top();
-              while (e.GetType() == Event::Type::kRedraw) {
-                pq_.pop();
-                e = pq_.top();
-              }
-              pq_.pop();
-
-              Particle* a {e.GetParticleA()};
-              Particle* b {e.GetParticleB()};
-
-              if (a != nullptr) {
-                window.clear(sf::Color::Black);
-                a->SetColor(sf::Color::Red);
-                Redraw(window, simulation_box);
-                window.display();
-              }
-              if (b != nullptr) {
-                window.clear(sf::Color::Black);
-                b->SetColor(sf::Color::Red);
-                Redraw(window, simulation_box);
-                window.display();
-              }
-
-              printf("%f\t", e.GetTime());
-              if (e.IsValid()) {
-                printf("Valid\n");
-              } else {
-                printf("Not Valid\n");
-              }
-
-              if (a != nullptr) {
-                a->SetColor(sf::Color::White);
-              }
-              if (b != nullptr) {
-                b->SetColor(sf::Color::White);
-              }
-
-              Pause(window, sf::Keyboard::RShift);
-            }
-
-            Pause(window, sf::Keyboard::RShift);
-            window.close();
           }
           break;
         default:
@@ -316,30 +267,13 @@ void CollisionSystem::Simulate() {
     // Get the next valid event
     Event e = pq_.top();
     pq_.pop();
-    printf("Event time: %lf\n", e.GetTime());
-    e.PrintType();
     while (e.IsValid() == false) {
       e = pq_.top();
       pq_.pop();
-      printf("Event time: %lf\n", e.GetTime());
-      e.PrintType();
     }
 
     Particle* a {e.GetParticleA()};
     Particle* b {e.GetParticleB()};
-
-    if (a != nullptr) {
-      window.clear(sf::Color::Black);
-      a->SetColor(sf::Color::Red);
-      Redraw(window, simulation_box);
-      window.display();
-    }
-    if (b != nullptr) {
-      window.clear(sf::Color::Black);
-      b->SetColor(sf::Color::Red);
-      Redraw(window, simulation_box);
-      window.display();
-    }
 
     Event::Type event_type {e.GetType()};
 
@@ -360,19 +294,16 @@ void CollisionSystem::Simulate() {
       case Event::Type::kParticleParticle:
         a->BounceOff(*b);
         collisions++;
-        Pause(window, sf::Keyboard::Space);
         break;
       // Particle-vertical wall collision
       case Event::Type::kVerticalWall:
         a->BounceOffVerticalWall();
         collisions++;
-        Pause(window, sf::Keyboard::Space);
         break;
       // Particle-horizontal wall collision
       case Event::Type::kHorizontalWall:
       b->BounceOffHorizontalWall();
         collisions++;
-        Pause(window, sf::Keyboard::Space);
         break;
       // Redraw event
       case Event::Type::kRedraw:
@@ -397,12 +328,5 @@ void CollisionSystem::Simulate() {
 
     Predict(a);
     Predict(b);
-
-    if (a != nullptr) {
-      a->SetColor(sf::Color::White);
-    }
-    if (b != nullptr) {
-      b->SetColor(sf::Color::White);
-    }
   }
 }

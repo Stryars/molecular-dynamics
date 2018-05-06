@@ -52,7 +52,6 @@ int Particle::Count() const {
 // particle, assuming no intervening collisions.
 double Particle::TimeToHit(Particle& that) const {
   if (this == &that) {
-    printf("THIS = THAT\n");
     return INFINITY;
   }
 
