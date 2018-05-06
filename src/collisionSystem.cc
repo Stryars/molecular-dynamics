@@ -14,7 +14,7 @@
 
 // Initializes a system with the specified collection of particles.
 CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
-    Hz_ {10},
+    Hz_ {1},
     time_ {0},
     particles_ {particles} {
   // Initialize priority queue with collision events and redraw event
@@ -95,30 +95,42 @@ void CollisionSystem::Pause(sf::RenderWindow& window,
 // Displays physical quantities (temperature, pressure, etc.) and helper text.
 void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window,
     sf::Font& font, time_t elapsed_time, int collisions,
-    double average_kinetic_energy) {
+    double average_kinetic_energy, sf::Time frameTime) {
   sf::Text space_help;
   space_help.setFont(font);
   space_help.setString("Press Space to pause/unpause or start the simulation.");
-  space_help.setCharacterSize(20);
+  space_help.setCharacterSize(30);
   space_help.setFillColor(sf::Color::White);
-  space_help.setPosition(0, HEIGHT - 90);
+  space_help.setPosition(0, HEIGHT - 120);
   window.draw(space_help);
 
   sf::Text shift_help;
   shift_help.setFont(font);
   shift_help.setString("Press Left Shift to display the velocity histogram.");
-  shift_help.setCharacterSize(20);
+  shift_help.setCharacterSize(30);
   shift_help.setFillColor(sf::Color::White);
-  shift_help.setPosition(0, HEIGHT - 60);
+  shift_help.setPosition(0, HEIGHT - 80);
   window.draw(shift_help);
 
   sf::Text escape_help;
   escape_help.setFont(font);
   escape_help.setString("Press Escape to quit the simulation.");
-  escape_help.setCharacterSize(20);
+  escape_help.setCharacterSize(30);
   escape_help.setFillColor(sf::Color::White);
-  escape_help.setPosition(0, HEIGHT - 30);
+  escape_help.setPosition(0, HEIGHT - 40);
   window.draw(escape_help);
+
+  int fps {static_cast<int>(1 / (frameTime.asMicroseconds() * pow(10, -6)))};
+  if (fps < 0) {
+    fps = 0;
+  }
+  sf::Text fps_text;
+  fps_text.setFont(font);
+  fps_text.setString("FPS: " + std::to_string(fps));
+  fps_text.setCharacterSize(30);
+  fps_text.setFillColor(sf::Color::White);
+  fps_text.setPosition(WIDTH - 160, 0);
+  window.draw(fps_text);
 
   const double boltzmann_constant = 1.3806503e-23;
 
@@ -126,7 +138,7 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window,
   particles_text.setFont(font);
   particles_text.setString("Particles count: "
       + std::to_string(particles_.size()));
-  particles_text.setCharacterSize(20);
+  particles_text.setCharacterSize(30);
   particles_text.setFillColor(sf::Color::White);
   window.draw(particles_text);
 
@@ -137,9 +149,9 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window,
     collisions_per_second = std::to_string(collisions / elapsed_time);
   }
   collisions_text.setString("Collisions per second: " + collisions_per_second);
-  collisions_text.setCharacterSize(20);
+  collisions_text.setCharacterSize(30);
   collisions_text.setFillColor(sf::Color::White);
-  collisions_text.setPosition(0, 30);
+  collisions_text.setPosition(0, 40);
   window.draw(collisions_text);
 
   double temperature {(2.0 / 3.0)
@@ -152,9 +164,9 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window,
   sf::Text temperature_text;
   temperature_text.setFont(font);
   temperature_text.setString("Temperature: " + strTemp + " K");
-  temperature_text.setCharacterSize(20);
+  temperature_text.setCharacterSize(30);
   temperature_text.setFillColor(sf::Color::White);
-  temperature_text.setPosition(0, 60);
+  temperature_text.setPosition(0, 80);
   window.draw(temperature_text);
 
   double pressure {(2.0 / 3.0) * average_kinetic_energy * particles_.size()
@@ -166,9 +178,9 @@ void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window,
   sf::Text pressure_text;
   pressure_text.setFont(font);
   pressure_text.setString("Pressure: " + strPress + " Pa");
-  pressure_text.setCharacterSize(20);
+  pressure_text.setCharacterSize(30);
   pressure_text.setFillColor(sf::Color::White);
-  pressure_text.setPosition(0, 90);
+  pressure_text.setPosition(0, 120);
   window.draw(pressure_text);
 }
 
@@ -182,7 +194,7 @@ void CollisionSystem::DisplayVelocityHistogram(sf::RenderWindow& window) {
 
   for (auto& particle : particles_) {
     int bucket {static_cast<int>(floor(particle.GetSpeed()
-        * DISTANCE_UNIT / bucket_size))};
+        * SPEED_UNIT / bucket_size))};
     speed_histogram[bucket]++;
   }
 
@@ -232,9 +244,13 @@ void CollisionSystem::Simulate() {
   time_t elapsed_time {0};
   int collisions {0};
 
+  // SFML Clock for the FPS counter
+  sf::Clock clock;
+  sf::Time frameTime {};
+
   window.clear(sf::Color::Black);
 
-  DisplayCharacteristics(window, source_code_pro, elapsed_time, collisions, 0);
+  DisplayCharacteristics(window, source_code_pro, elapsed_time, collisions, 0, sf::Time {});
   Redraw(window, simulation_box);
 
   window.display();
@@ -244,7 +260,7 @@ void CollisionSystem::Simulate() {
   while (window.isOpen() && !pq_.empty()) {
     // printf("Collisions: %d\n", collisions);
     // printf("Time: %lf\n", time_);
-    printf("PQ size: %lu\n", pq_.size());
+    // printf("PQ size: %lu\n", pq_.size());
     sf::Event event;
     while (window.pollEvent(event)) {
       switch (event.type) {
@@ -315,11 +331,14 @@ void CollisionSystem::Simulate() {
 
         elapsed_time = time(nullptr) - start_time;
         DisplayCharacteristics(window, source_code_pro, elapsed_time,
-            collisions, average_kinetic_energy);
+            collisions, average_kinetic_energy, frameTime);
 
         Redraw(window, simulation_box);
 
         window.display();
+
+        // FPS counter
+        frameTime = clock.restart();
 
         pq_.push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_,
             nullptr, nullptr));
