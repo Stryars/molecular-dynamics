@@ -10,15 +10,22 @@
 #include "collisionSystem.h"
 
 int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    printf("Please enter the particles' radius.\n");
+  if (argc != 3) {
+    printf("Please enter the particle radius and space between the particles.\n");
     return 1;
   }
 
-  std::istringstream ss {argv[1]};
   int particle_radius {0};
-  if (!(ss >> particle_radius)) {
+  std::istringstream ss1 {argv[1]};
+  if (!(ss1 >> particle_radius)) {
     std::cerr << "Invalid number " << argv[1] << '\n';
+    return 1;
+  }
+
+  int space_between_particles {0};
+  std::istringstream ss2 {argv[2]};
+  if (!(ss2 >> space_between_particles)) {
+    std::cerr << "Invalid number " << argv[2] << '\n';
     return 1;
   }
 
@@ -39,10 +46,10 @@ int main(int argc, char* argv[]) {
           1,
           sf::Color(random_color(rng), random_color(rng), random_color(rng))));
 
-      y += 2 * particle_radius + 5;
+      y += 2 * particle_radius + space_between_particles;
     }
 
-    x += 2 * particle_radius + 5;
+    x += 2 * particle_radius + space_between_particles;
   }
 
   // Initialization of the collision system

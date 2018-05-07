@@ -3,8 +3,9 @@
 
 PROG = molecular-sim
 I_DIR = ../include
-CC = clang++
-CPPFLAGS = -g -std=gnu++11 -stdlib=libc++ -I$(I_DIR) -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlong-long -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-overflow=5 -Wundef -Werror -Wno-unused -Wno-long-long
+CXX = /usr/local/Cellar/llvm/6.0.0/bin/clang++
+
+CPPFLAGS = -g -std=c++11 -stdlib=libc++ -I$(I_DIR) -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlong-long -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-overflow=5 -Wundef -Werror -Wno-unused -Wno-long-long
 
 O_DIR = obj
 L_DIR = ../lib
@@ -21,10 +22,10 @@ _OBJS = main.o particle.o event.o collisionSystem.o
 OBJS = $(patsubst %,$(O_DIR)/%,$(_OBJS))
 
 $(O_DIR)/%.o: %.cc $(DEPS)
-	$(CC) -c -o $@ $< $(CPPFLAGS)
+	$(CXX) -c -o $@ $< $(CPPFLAGS)
 
 main: $(OBJS)
-	$(CC) -o $(EXEC) $^ $(CPPFLAGS) $(LIBS)
+	$(CXX) -o $(EXEC) $^ $(CPPFLAGS) $(LIBS)
 
 .PHONY: clean
 

@@ -156,8 +156,8 @@ void Particle::BounceOffHorizontalWall() {
 
 // Returns the kinetic energy of this particle.
 double Particle::KineticEnergy() const {
-  printf("%g\n", MASS_UNIT);
-  return 0.5 * mass_ * MASS_UNIT * pow(SPEED_UNIT * GetSpeed(), 2);
+  double kinetic_energy {0.5 * mass_ * MASS_UNIT * pow(SPEED_UNIT * GetSpeed(), 2)};
+  return kinetic_energy;
 }
 
 // Returns the particle's radius.

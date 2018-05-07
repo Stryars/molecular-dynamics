@@ -22,6 +22,9 @@ public:
   // Pauses the simulation.
   void Pause(sf::RenderWindow& window, sf::Keyboard::Key pause_key);
 
+  void DrawText(sf::RenderWindow& window, sf::Font& font,
+      std::string str, int character_size, sf::Color color, int x, int y);
+
   // Displays physical quantities (temperature, pressure, etc.) and helper text.
   void DisplayCharacteristics(sf::RenderWindow& window, sf::Font& font,
       time_t elapsed_time, int collisions, double average_kinetic_energy, sf::Time frameTime);

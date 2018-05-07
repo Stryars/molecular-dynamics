@@ -14,7 +14,7 @@
 
 // Initializes a system with the specified collection of particles.
 CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
-    Hz_ {1},
+    Hz_ {0.5},
     time_ {0},
     particles_ {particles} {
   // Initialize priority queue with collision events and redraw event
@@ -92,102 +92,85 @@ void CollisionSystem::Pause(sf::RenderWindow& window,
   }
 }
 
+void CollisionSystem::DrawText(sf::RenderWindow& window, sf::Font& font,
+    std::string str, int character_size, sf::Color color, int x, int y) {
+  sf::Text text;
+  text.setFont(font);
+  text.setString(str);
+  text.setCharacterSize(character_size);
+  text.setFillColor(color);
+  text.setPosition(x, y);
+  window.draw(text);
+}
+
 // Displays physical quantities (temperature, pressure, etc.) and helper text.
 void CollisionSystem::DisplayCharacteristics(sf::RenderWindow& window,
     sf::Font& font, time_t elapsed_time, int collisions,
     double average_kinetic_energy, sf::Time frameTime) {
-  sf::Text space_help;
-  space_help.setFont(font);
-  space_help.setString("Press Space to pause/unpause or start the simulation.");
-  space_help.setCharacterSize(30);
-  space_help.setFillColor(sf::Color::White);
-  space_help.setPosition(0, HEIGHT - 120);
-  window.draw(space_help);
+  DrawText(window, font,
+      "Press Space to pause/unpause or start the simulation.", 30,
+      sf::Color::White, 0, HEIGHT - 120);
 
-  sf::Text shift_help;
-  shift_help.setFont(font);
-  shift_help.setString("Press Left Shift to display the velocity histogram.");
-  shift_help.setCharacterSize(30);
-  shift_help.setFillColor(sf::Color::White);
-  shift_help.setPosition(0, HEIGHT - 80);
-  window.draw(shift_help);
+  DrawText(window, font,
+      "Press Left Shift to display the velocity histogram.", 30,
+      sf::Color::White, 0, HEIGHT - 80);
 
-  sf::Text escape_help;
-  escape_help.setFont(font);
-  escape_help.setString("Press Escape to quit the simulation.");
-  escape_help.setCharacterSize(30);
-  escape_help.setFillColor(sf::Color::White);
-  escape_help.setPosition(0, HEIGHT - 40);
-  window.draw(escape_help);
+  DrawText(window, font,
+      "Press Escape to quit the simulation.", 30,
+      sf::Color::White, 0, HEIGHT - 40);
 
   int fps {static_cast<int>(1 / (frameTime.asMicroseconds() * pow(10, -6)))};
   if (fps < 0) {
     fps = 0;
   }
-  sf::Text fps_text;
-  fps_text.setFont(font);
-  fps_text.setString("FPS: " + std::to_string(fps));
-  fps_text.setCharacterSize(30);
-  fps_text.setFillColor(sf::Color::White);
-  fps_text.setPosition(WIDTH - 160, 0);
-  window.draw(fps_text);
+  DrawText(window, font,
+      "FPS: " + std::to_string(fps), 30,
+      sf::Color::White, WIDTH - 160, 0);
 
   const double boltzmann_constant = 1.3806503e-23;
 
-  sf::Text particles_text;
-  particles_text.setFont(font);
-  particles_text.setString("Particles count: "
-      + std::to_string(particles_.size()));
-  particles_text.setCharacterSize(30);
-  particles_text.setFillColor(sf::Color::White);
-  window.draw(particles_text);
+  DrawText(window, font,
+      "Particles count: " + std::to_string(particles_.size()), 30,
+      sf::Color::White, 0, 0);
 
-  sf::Text collisions_text;
-  collisions_text.setFont(font);
   std::string collisions_per_second {"0"};
   if (elapsed_time != 0) {
     collisions_per_second = std::to_string(collisions / elapsed_time);
   }
-  collisions_text.setString("Collisions per second: " + collisions_per_second);
-  collisions_text.setCharacterSize(30);
-  collisions_text.setFillColor(sf::Color::White);
-  collisions_text.setPosition(0, 40);
-  window.draw(collisions_text);
+  DrawText(window, font,
+      "Collisions per second: " + collisions_per_second, 30,
+      sf::Color::White, 0, 40);
+
+  std::ostringstream streamEnerg;
+  streamEnerg << average_kinetic_energy;
+  std::string strEnerg = streamEnerg.str();
+  DrawText(window, font,
+      "Av. kinetic energy: " + strEnerg + "J", 30,
+      sf::Color::White, 0, 80);
 
   double temperature {(2.0 / 3.0)
       * average_kinetic_energy / boltzmann_constant};
-
   std::ostringstream streamTemp;
   streamTemp << temperature;
   std::string strTemp = streamTemp.str();
-
-  sf::Text temperature_text;
-  temperature_text.setFont(font);
-  temperature_text.setString("Temperature: " + strTemp + " K");
-  temperature_text.setCharacterSize(30);
-  temperature_text.setFillColor(sf::Color::White);
-  temperature_text.setPosition(0, 80);
-  window.draw(temperature_text);
+  DrawText(window, font,
+      "Temperature: " + strTemp + "K", 30,
+      sf::Color::White, 0, 120);
 
   double pressure {(2.0 / 3.0) * average_kinetic_energy * particles_.size()
       / (HEIGHT * 0.6 * DISTANCE_UNIT * WIDTH * 0.6 * DISTANCE_UNIT)};
   std::ostringstream streamPress;
   streamPress << pressure;
   std::string strPress = streamPress.str();
-
-  sf::Text pressure_text;
-  pressure_text.setFont(font);
-  pressure_text.setString("Pressure: " + strPress + " Pa");
-  pressure_text.setCharacterSize(30);
-  pressure_text.setFillColor(sf::Color::White);
-  pressure_text.setPosition(0, 120);
-  window.draw(pressure_text);
+  DrawText(window, font,
+      "Pressure: " + strPress + "Pa", 30,
+      sf::Color::White, 0, 160);
 }
 
 // Display the velocity histogram.
 void CollisionSystem::DisplayVelocityHistogram(sf::RenderWindow& window) {
-  const int max_speed {1500};
-  const float bucket_size {20};
+  const int max_speed {2500};
+  const float bucket_size {10};
   int number_of_buckets {static_cast<int>(ceil(max_speed / bucket_size))};
 
   std::vector<int> speed_histogram(number_of_buckets);
@@ -201,16 +184,16 @@ void CollisionSystem::DisplayVelocityHistogram(sf::RenderWindow& window) {
   window.clear(sf::Color::Black);
 
   for (auto i {0}; i < number_of_buckets; ++i) {
-    sf::RectangleShape line(sf::Vector2f(1, speed_histogram[i] * 20));
+    sf::RectangleShape line(sf::Vector2f(1, speed_histogram[i] * 80));
     line.rotate(180);
     line.setFillColor(sf::Color::White);
-    line.setPosition(i * bucket_size, 900);
+    line.setPosition(i * bucket_size / 2, HEIGHT - 100);
     window.draw(line);
   }
 
   sf::RectangleShape horizontal_line(sf::Vector2f(WIDTH, 5));
   horizontal_line.setFillColor(sf::Color::White);
-  horizontal_line.setPosition(0, 9 * HEIGHT / 10);
+  horizontal_line.setPosition(0, HEIGHT - 100);
   window.draw(horizontal_line);
 
   window.display();
@@ -353,7 +336,7 @@ void CollisionSystem::Simulate() {
     while (!pq_.empty()) {
       Event temp_e {pq_.top()};
       pq_.pop();
-      if (temp_e.IsValid() && temp_e.GetTime() != INFINITY) {
+      if (temp_e.IsValid()) {
         temp_events.push_back(temp_e);
       }
     }
