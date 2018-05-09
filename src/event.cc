@@ -1,4 +1,4 @@
-// Copyright 2018 <Samuel Diebolt>
+// Copyright 2018, Samuel Diebolt <samuel.diebolt@espci.fr>
 
 #include "event.h"
 #include "particle.h"
