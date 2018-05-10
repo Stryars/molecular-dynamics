@@ -1,4 +1,4 @@
-// Copyright 2018 <Samuel Diebolt>
+// Copyright 2018, Samuel Diebolt <samuel.diebolt@espci.fr>
 
 #pragma once
 

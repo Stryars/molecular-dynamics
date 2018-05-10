@@ -1,4 +1,4 @@
-// Copyright 2018 <Samuel Diebolt>
+// Copyright 2018, Samuel Diebolt <samuel.diebolt@espci.fr>
 
 #include <queue>
 #include <cstdio>
@@ -11,10 +11,11 @@
 #include "collisionSystem.h"
 #include "particle.h"
 #include "event.h"
+#include "hsv2rgb.h"
 
 // Initializes a system with the specified collection of particles.
 CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
-    Hz_ {0.5},
+    Hz_ {0.2},
     time_ {0},
     particles_ {particles} {
   // Initialize priority queue with collision events and redraw event
@@ -55,9 +56,39 @@ void CollisionSystem::Redraw(sf::RenderWindow& window,
     sf::RectangleShape& box) {
   window.draw(box);
 
-  for (const auto& particle : particles_) {
-    particle.Draw(window);
+  sf::Uint8 *pixels  = new sf::Uint8[BOX_WIDTH * BOX_HEIGHT * 4];
+
+  sf::Texture texture;
+  texture.create(BOX_WIDTH, BOX_HEIGHT);
+
+  sf::Sprite sprite;
+
+  for (auto x {0}; x < BOX_WIDTH; ++x) {
+    for (auto y {0}; y < BOX_HEIGHT; ++y) {
+      int index {(x + y * BOX_WIDTH) * 4};
+      float sum {0};
+      for (const auto& particle : particles_) {
+        double d {sqrt((x + 280 - particle.GetRx()) * (x + 280 - particle.GetRx()) + (y + 280 - particle.GetRy()) * (y + 280 - particle.GetRy()))};
+        sum += 300 * particle.GetRadius() / d;
+      }
+      sum = fmin(sum, 360);
+      float r {0}, g {0}, b {0}, s {1.0}, v {1.0};
+      HSVtoRGB(r, g, b, sum, s, v);
+      pixels[index] = r * 255;
+      pixels[index + 1] = g * 255;
+      pixels[index + 2] = b * 255;
+      pixels[index + 3] = 255;
+    }
   }
+
+  texture.update(pixels);
+  sprite.setTexture(texture);
+  sprite.setPosition(280, 280);
+  sprite.setColor(sf::Color::White);
+  window.draw(sprite);
+  // particles_[0].Draw(window);
+
+  delete[] pixels;
 }
 
 // Pauses the simulation.

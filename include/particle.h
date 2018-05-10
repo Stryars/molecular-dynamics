@@ -1,4 +1,4 @@
-// Copyright 2018 <Samuel Diebolt>
+// Copyright 2018, Samuel Diebolt <samuel.diebolt@espci.fr>
 
 #pragma once
 
@@ -64,6 +64,12 @@ public:
 
   // Sets the particle's color.
   void SetColor(sf::Color color);
+
+  // Returns the rx coordinate
+  double GetRx() const;
+
+  // Returns the ry coordinate
+  double GetRy() const;
 
 private:
   double rx_, ry_;            // Position

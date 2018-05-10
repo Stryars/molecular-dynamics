@@ -1,4 +1,4 @@
-// Copyright 2018 <Samuel Diebolt>
+// Copyright 2018, Samuel Diebolt <samuel.diebolt@espci.fr>
 
 #include <cstdio>
 #include <cmath>
@@ -181,4 +181,14 @@ double Particle::GetSpeed() const {
 void Particle::SetColor(sf::Color color) {
   color_ = color;
   circle_.setFillColor(color_);
+}
+
+// Returns the rx coordinate
+double Particle::GetRx() const {
+  return rx_;
+}
+
+// Returns the ry coordinate
+double Particle::GetRy() const {
+  return ry_;
 }
