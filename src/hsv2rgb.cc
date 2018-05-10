@@ -29,45 +29,47 @@
 
 #include <cmath>
 
-#include "hsv2rgb.h"
+#include "include/hsv2rgb.h"
 
-void HSVtoRGB(float& fR, float& fG, float& fB, float& fH, float& fS, float& fV) {
-  float fC = fV * fS; // Chroma
-  float fHPrime = fmod(fH / 60.0, 6);
+// Every variable is is range [0, 1] except fHin, which is in range [0, 360].
+void HSVtoRGB(float fHin, float fSin, float fVin,
+    float* fRout, float* fGout, float* fBout) {
+  float fC = fVin * fSin;
+  float fHPrime = fmod(fHin / 60.0, 6);
   float fX = fC * (1 - fabs(fmod(fHPrime, 2) - 1));
-  float fM = fV - fC;
+  float fM = fVin - fC;
 
-  if(0 <= fHPrime && fHPrime < 1) {
-    fR = fC;
-    fG = fX;
-    fB = 0;
-  } else if(1 <= fHPrime && fHPrime < 2) {
-    fR = fX;
-    fG = fC;
-    fB = 0;
-  } else if(2 <= fHPrime && fHPrime < 3) {
-    fR = 0;
-    fG = fC;
-    fB = fX;
-  } else if(3 <= fHPrime && fHPrime < 4) {
-    fR = 0;
-    fG = fX;
-    fB = fC;
-  } else if(4 <= fHPrime && fHPrime < 5) {
-    fR = fX;
-    fG = 0;
-    fB = fC;
-  } else if(5 <= fHPrime && fHPrime < 6) {
-    fR = fC;
-    fG = 0;
-    fB = fX;
+  if (0 <= fHPrime && fHPrime < 1) {
+    *fRout = fC;
+    *fGout = fX;
+    *fBout = 0;
+  } else if (1 <= fHPrime && fHPrime < 2) {
+    *fRout = fX;
+    *fGout = fC;
+    *fBout = 0;
+  } else if (2 <= fHPrime && fHPrime < 3) {
+    *fRout = 0;
+    *fGout = fC;
+    *fBout = fX;
+  } else if (3 <= fHPrime && fHPrime < 4) {
+    *fRout = 0;
+    *fGout = fX;
+    *fBout = fC;
+  } else if (4 <= fHPrime && fHPrime < 5) {
+    *fRout = fX;
+    *fGout = 0;
+    *fBout = fC;
+  } else if (5 <= fHPrime && fHPrime < 6) {
+    *fRout = fC;
+    *fGout = 0;
+    *fBout = fX;
   } else {
-    fR = 0;
-    fG = 0;
-    fB = 0;
+    *fRout = 0;
+    *fGout = 0;
+    *fBout = 0;
   }
 
-  fR += fM;
-  fG += fM;
-  fB += fM;
+  *fRout += fM;
+  *fGout += fM;
+  *fBout += fM;
 }

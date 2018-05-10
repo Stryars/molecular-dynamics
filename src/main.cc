@@ -4,10 +4,10 @@
 #include <random>
 #include <sstream>
 
-#include "SFML/Graphics.hpp"
-#include "main.h"
-#include "particle.h"
-#include "collisionSystem.h"
+#include "include/SFML/Graphics.hpp"
+#include "include/main.h"
+#include "include/particle.h"
+#include "include/collisionSystem.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {
@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
   // Initialization of the particles collection
   std::vector<Particle> particles {};
 
+  // Initialize particles in a simple square crystal.
   double x {0.2 * WIDTH + particle_radius * 2}, y {0};
   while (x + particle_radius < 0.8 * WIDTH) {
     y = 0.2 * HEIGHT + particle_radius * 2;

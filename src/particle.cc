@@ -4,10 +4,10 @@
 #include <cmath>
 #include <ctime>
 
-#include "SFML/Graphics.hpp"
+#include "include/SFML/Graphics.hpp"
 
-#include "main.h"
-#include "particle.h"
+#include "include/main.h"
+#include "include/particle.h"
 
 // Initializes a particle with specified position, velocity, radius,
 // mass and color.
@@ -50,7 +50,7 @@ int Particle::Count() const {
 
 // Returns the amount of time for this particle to collide with the specified
 // particle, assuming no intervening collisions.
-double Particle::TimeToHit(Particle& that) const {
+double Particle::TimeToHit(const Particle& that) const {
   if (this == &that) {
     return INFINITY;
   }
@@ -110,21 +110,21 @@ double Particle::TimeToHitHorizontalWall() const {
 
 // Updates the velocity of this particle and the specified particle according
 // to the laws of elastic collision.
-void Particle::BounceOff(Particle& that) {
-  double dx {that.rx_ - rx_};
-  double dy {that.ry_ - ry_};
-  double dvx {that.vx_ - vx_};
-  double dvy {that.vy_ - vy_};
+void Particle::BounceOff(Particle* that) {
+  double dx {that->rx_ - rx_};
+  double dy {that->ry_ - ry_};
+  double dvx {that->vx_ - vx_};
+  double dvy {that->vy_ - vy_};
 
   // Dot product dv.dr
   double dvdr {dx * dvx + dy * dvy};
 
   // Distance between particles centers at collision.
-  double dist {radius_ + that.radius_};
+  double dist {radius_ + that->radius_};
 
   // Magnitude of normal force
-  double magnitude {2 * mass_ * that.mass_ * dvdr /
-    ((mass_ + that.mass_) * dist)};
+  double magnitude {2 * mass_ * that->mass_ * dvdr /
+    ((mass_ + that->mass_) * dist)};
 
   // Normal force in x and y directions
   double fx {magnitude * dx / dist};
@@ -133,12 +133,12 @@ void Particle::BounceOff(Particle& that) {
   // Update velocities according to normal force
   vx_ += fx / mass_;
   vy_ += fy / mass_;
-  that.vx_ -= fx / that.mass_;
-  that.vy_ -= fy / that.mass_;
+  that->vx_ -= fx / that->mass_;
+  that->vy_ -= fy / that->mass_;
 
   // Update collision counts
   collisions_count_++;
-  that.collisions_count_++;
+  that->collisions_count_++;
 }
 
 // Updates the velocity of this particle upon collision with a vertical wall.
@@ -156,7 +156,8 @@ void Particle::BounceOffHorizontalWall() {
 
 // Returns the kinetic energy of this particle.
 double Particle::KineticEnergy() const {
-  double kinetic_energy {0.5 * mass_ * MASS_UNIT * pow(SPEED_UNIT * GetSpeed(), 2)};
+  double kinetic_energy {0.5 * mass_ * MASS_UNIT
+      * pow(SPEED_UNIT * GetSpeed(), 2)};
   return kinetic_energy;
 }
 

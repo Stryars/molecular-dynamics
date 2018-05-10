@@ -8,7 +8,7 @@
 // collision or redraw of each particle.
 // The collision system uses a priority queue to store all events.
 class Event {
-public:
+ public:
   enum class Type {
     kParticleParticle,
     kVerticalWall,
@@ -37,10 +37,7 @@ public:
   // Returns event type.
   Type GetType() const;
 
-  // Prints event type.
-  void PrintType() const;
-
-private:
+ private:
   // Event type
   Type type_;
 

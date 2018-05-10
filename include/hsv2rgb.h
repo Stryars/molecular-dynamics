@@ -27,4 +27,8 @@
 
 /* Author: Jan Winkler */
 
-void HSVtoRGB(float& fR, float& fG, float& fB, float& fH, float& fS, float& fV);
+#pragma once
+
+// Every variable is is range [0, 1] except fHin, which is in range [0, 360].
+void HSVtoRGB(float fHin, float fSin, float fVin,
+    float* fRout, float* fGout, float* fBout);

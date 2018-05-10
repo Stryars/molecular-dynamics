@@ -7,7 +7,7 @@
 #include "SFML/Graphics.hpp"
 
 class Particle {
-public:
+ public:
   // Initializes a particle with specified position, velocity, radius,
   // mass and color.
   Particle(double rx, double ry, double vx, double vy, const double radius,
@@ -29,7 +29,7 @@ public:
 
   // Returns the amount of time for this particle to collide with the specified
   // particle, assuming no intervening collisions.
-  double TimeToHit(Particle& that) const;
+  double TimeToHit(const Particle& that) const;
 
   // Returns the amount of time for this particle to collide with a vertical
   // wall, assuming no intervening collisions.
@@ -41,7 +41,7 @@ public:
 
   // Updates the velocity of this particle and the specified particle according
   // to the laws of elastic collision.
-  void BounceOff(Particle& that);
+  void BounceOff(Particle* that);
 
   // Updates the velocity of this particle upon collision with a vertical wall.
   void BounceOffVerticalWall();
@@ -71,13 +71,13 @@ public:
   // Returns the ry coordinate
   double GetRy() const;
 
-private:
+ private:
   double rx_, ry_;            // Position
   double vx_, vy_;            // Velocity
 
-  int collisions_count_;   // Number of collisions so far
+  int collisions_count_;      // Number of collisions so far
 
-  double radius_;       // Radius
+  double radius_;             // Radius
   const double mass_;         // Mass
 
   sf::Color color_;           // Color
