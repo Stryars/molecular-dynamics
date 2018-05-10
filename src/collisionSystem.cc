@@ -68,8 +68,10 @@ void CollisionSystem::Redraw(sf::RenderWindow& window,
       int index {(x + y * BOX_WIDTH) * 4};
       float sum {0};
       for (const auto& particle : particles_) {
-        double d {sqrt((x + 280 - particle.GetRx()) * (x + 280 - particle.GetRx()) + (y + 280 - particle.GetRy()) * (y + 280 - particle.GetRy()))};
-        sum += 300 * particle.GetRadius() / d;
+        double d {sqrt((x + 280 - particle.GetRx())
+            * (x + 280 - particle.GetRx()) + (y + 280 - particle.GetRy())
+            * (y + 280 - particle.GetRy()))};
+        sum += 1000 * particle.GetRadius() / d;
       }
       sum = fmin(sum, 360);
       float r {0}, g {0}, b {0}, s {1.0}, v {1.0};
@@ -98,8 +100,8 @@ void CollisionSystem::Pause(sf::RenderWindow& window,
 
   while (pause == true) {
     sf::Event event;
-    while (window.pollEvent(event)) {
-      switch(event.type) {
+    if (window.pollEvent(event)) {
+      switch (event.type) {
         case sf::Event::Closed:
           pause = false;
           window.close();
@@ -237,11 +239,11 @@ void CollisionSystem::Simulate() {
   // Initialize the window
   sf::RenderWindow window {sf::VideoMode(WIDTH, HEIGHT),
       "Molecular Dynamics", sf::Style::Titlebar | sf::Style::Close};
-  window.setFramerateLimit(50);
+  window.setFramerateLimit(60);
 
   // Initialize the font
   sf::Font source_code_pro;
-  if (!source_code_pro.loadFromFile("../etc/fonts/sourcecodepro.otf")) {
+  if (!source_code_pro.loadFromFile("etc/fonts/sourcecodepro.otf")) {
     printf("Couldn't load Source Code Pro font.\n");
     exit(1);
   }
@@ -264,7 +266,8 @@ void CollisionSystem::Simulate() {
 
   window.clear(sf::Color::Black);
 
-  DisplayCharacteristics(window, source_code_pro, elapsed_time, collisions, 0, sf::Time {});
+  DisplayCharacteristics(window, source_code_pro, elapsed_time, collisions,
+      0, sf::Time {});
   Redraw(window, simulation_box);
 
   window.display();
@@ -272,11 +275,8 @@ void CollisionSystem::Simulate() {
   Pause(window, sf::Keyboard::Space);
 
   while (window.isOpen() && !pq_.empty()) {
-    // printf("Collisions: %d\n", collisions);
-    // printf("Time: %lf\n", time_);
-    // printf("PQ size: %lu\n", pq_.size());
     sf::Event event;
-    while (window.pollEvent(event)) {
+    if (window.pollEvent(event)) {
       switch (event.type) {
         case sf::Event::Closed:
           window.close();
