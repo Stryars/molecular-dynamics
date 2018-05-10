@@ -3,11 +3,12 @@
 
 # Ignore the build and lib dirs
 build
-#lib/*
+lib/*
 
 # Ignore any executables
 bin/*
 
 # Misc
+include/SFML/*
 .DS_Store
 etc
