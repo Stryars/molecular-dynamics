@@ -1,7 +1,7 @@
 # $ make
 # $ ./molecular-sim
 
-CXX = clang++
+CXX = g++
 SRCDIR := src
 BUILDDIR := build
 TARGET := bin/mdsim
