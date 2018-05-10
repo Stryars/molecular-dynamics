@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <vector>
 #include <queue>
 #include <functional>
 
@@ -9,7 +10,7 @@
 #include "event.h"
 
 class CollisionSystem {
-public:
+ public:
   // Initializes a system with the specified collection of particles.
   CollisionSystem(std::vector<Particle> particles);
 
@@ -35,7 +36,7 @@ public:
   // Simulates the system of particles for the specified amount of time.
   void Simulate();
 
-private:
+ private:
   // Number of redraw per clock tick
   double Hz_;
 
