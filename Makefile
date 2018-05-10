@@ -1,7 +1,7 @@
 # $ make
 # $ ./molecular-sim
 
-CXX = /usr/local/Cellar/llvm/6.0.0/bin/clang++
+CXX = clang++
 SRCDIR := src
 BUILDDIR := build
 TARGET := bin/mdsim
