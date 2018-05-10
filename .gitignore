@@ -1,10 +1,12 @@
 # Files being edited
 *~
 
-# Make and build files
-*.o
-*.h.gch
-molecular-sim
+# Ignore the build and lib dirs
+build
+lib/*
+
+# Ignore any executables
+bin/*
 
 # SFML files
 include/SFML/*

@@ -11,7 +11,8 @@
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {
-    printf("Please enter the particle radius and space between the particles.\n");
+    printf("Please enter the particle radius and space between the "
+    "particles.\n");
     return 1;
   }
 
@@ -36,25 +37,21 @@ int main(int argc, char* argv[]) {
   // Initialization of the particles collection
   std::vector<Particle> particles {};
 
-  particles.push_back(Particle(400, 400, 1, 0.7, 50, 1, sf::Color::White));
-  particles.push_back(Particle(600, 400, -0.2, 0.3, 50, 1, sf::Color::White));
-  particles.push_back(Particle(600, 400, 1, -0.6, 50, 1, sf::Color::White));
+  double x {0.2 * WIDTH + particle_radius * 2}, y {0};
+  while (x + particle_radius < 0.8 * WIDTH) {
+    y = 0.2 * HEIGHT + particle_radius * 2;
+    while (y + particle_radius < 0.8 * HEIGHT) {
+      particles.push_back(Particle(x, y,
+          random_speed(rng), random_speed(rng),
+          particle_radius,
+          1,
+          sf::Color(random_color(rng), random_color(rng), random_color(rng))));
 
-  // double x {0.2 * WIDTH + particle_radius * 2}, y {0};
-  // while (x + particle_radius < 0.8 * WIDTH) {
-  //   y = 0.2 * HEIGHT + particle_radius * 2;
-  //   while (y + particle_radius < 0.8 * HEIGHT) {
-  //     particles.push_back(Particle(x, y,
-  //         random_speed(rng), random_speed(rng),
-  //         particle_radius,
-  //         1,
-  //         sf::Color(random_color(rng), random_color(rng), random_color(rng))));
-  //
-  //     y += 2 * particle_radius + space_between_particles;
-  //   }
-  //
-  //   x += 2 * particle_radius + space_between_particles;
-  // }
+      y += 2 * particle_radius + space_between_particles;
+    }
+
+    x += 2 * particle_radius + space_between_particles;
+  }
 
   // Initialization of the collision system
   CollisionSystem system {particles};
