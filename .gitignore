@@ -8,11 +8,6 @@ lib/*
 # Ignore any executables
 bin/*
 
-# SFML files
-include/SFML/*
-*.dylib
-lib/pkgconfig/*
-
 # Misc
 .DS_Store
 etc
