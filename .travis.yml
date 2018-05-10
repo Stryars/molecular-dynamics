@@ -33,4 +33,5 @@ install:
 - make install
 - cd ../../
 script:
+- mkdir bin
 - make
