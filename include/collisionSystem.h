@@ -21,7 +21,7 @@ class CollisionSystem {
   void Predict(Particle* a);
 
   // Redraws all particles.
-  void Redraw(const sf::RectangleShape& box, bool isosurface);
+  void Redraw(bool isosurface);
 
   // Pauses the simulation.
   void Pause(sf::Keyboard::Key pause_key);

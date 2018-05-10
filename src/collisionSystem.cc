@@ -60,9 +60,7 @@ void CollisionSystem::Predict(Particle* a) {
 }
 
 // Redraws all particles.
-void CollisionSystem::Redraw(const sf::RectangleShape& box, bool isosurface) {
-  window_.draw(box);
-
+void CollisionSystem::Redraw(bool isosurface) {
   if (isosurface == true && window_.isOpen()) {
     sf::Uint8 pixels[BOX_WIDTH * BOX_HEIGHT * 4];
 
@@ -150,13 +148,21 @@ void CollisionSystem::DisplayCharacteristics(sf::Font& font,
     time_t elapsed_time, int collisions, double average_kinetic_energy,
     sf::Time frameTime) {
   DrawText(font,
+      "Press P to display/hide the particles.", 30,
+      sf::Color::White, 0, HEIGHT - 240);
+
+  DrawText(font,
+      "Press B to display/hide brownian motion.", 30,
+      sf::Color::White, 0, HEIGHT - 200);
+
+  DrawText(font,
       "Press Space to pause/unpause or start the simulation.", 30,
-      sf::Color::White, 0, HEIGHT - 120);
+      sf::Color::White, 0, HEIGHT - 160);
 
   DrawText(font,
       "Press Right Shift to visualise isosurface "
       "(WARNING: VERY POOR PERFORMANCES).", 30,
-      sf::Color::White, 0, HEIGHT - 160);
+      sf::Color::White, 0, HEIGHT - 120);
 
   DrawText(font,
       "Press Left Shift to display the velocity histogram.", 30,
@@ -252,6 +258,12 @@ void CollisionSystem::DisplayVelocityHistogram() {
 int CollisionSystem::Simulate() {
   // Check if isosurfaces need to be displayed
   bool isosurface {false};
+  bool display_particles {true};
+
+  // Brownian motion path
+  bool display_brownian_path {false};
+  sf::VertexArray brownian_path(sf::LinesStrip);
+  Particle* brownian_particle {&(particles_[particles_.size() / 2])};
 
   // Initialize the font
   sf::Font source_code_pro;
@@ -281,7 +293,8 @@ int CollisionSystem::Simulate() {
 
   DisplayCharacteristics(source_code_pro, elapsed_time, collisions,
       0, sf::Time {});
-  Redraw(simulation_box, isosurface);
+  window_.draw(simulation_box);
+  Redraw(isosurface);
 
   window_.display();
 
@@ -289,6 +302,7 @@ int CollisionSystem::Simulate() {
 
   // Main simulation loop
   while (window_.isOpen() && !pq_.empty()) {
+    // printf("PQ size: %lu\n", pq_.size());
     sf::Event event;
     // Process user events
     if (window_.pollEvent(event)) {
@@ -314,6 +328,12 @@ int CollisionSystem::Simulate() {
           // Space: pause the simulation
           } else if (event.key.code == sf::Keyboard::Space) {
             Pause(sf::Keyboard::Space);
+          // B: display brownian path
+          } else if (event.key.code == sf::Keyboard::B) {
+            display_brownian_path = !display_brownian_path;
+          // P: display particles
+          } else if (event.key.code == sf::Keyboard::P) {
+            display_particles = !display_particles;
           }
           break;
         default:
@@ -345,6 +365,12 @@ int CollisionSystem::Simulate() {
     average_kinetic_energy /= particles_.size();
     time_ = e.GetTime();
 
+    if (a == brownian_particle) {
+      brownian_path.append(sf::Vector2f(a->GetRx(), a->GetRy()));
+    } else if (b == brownian_particle) {
+      brownian_path.append(sf::Vector2f(b->GetRx(), b->GetRy()));
+    }
+
     // Process event
     switch (event_type) {
       // Particle-particle collision
@@ -370,7 +396,14 @@ int CollisionSystem::Simulate() {
         DisplayCharacteristics(source_code_pro, elapsed_time,
             collisions, average_kinetic_energy, frameTime);
 
-        Redraw(simulation_box, isosurface);
+        window_.draw(simulation_box);
+        if (display_particles) {
+          Redraw(isosurface);
+        }
+
+        if (display_brownian_path) {
+          window_.draw(brownian_path);
+        }
 
         window_.display();
 
@@ -388,18 +421,20 @@ int CollisionSystem::Simulate() {
     }
 
     // Remove every invalid event from the priority queue
-    std::vector<Event> temp_events {};
-    while (!pq_.empty()) {
-      Event temp_e {pq_.top()};
-      pq_.pop();
-      if (temp_e.IsValid()) {
-        temp_events.push_back(temp_e);
-      }
-    }
-
-    for (const auto& ev : temp_events) {
-      pq_.push(ev);
-    }
+    // Source of huge performance decrease
+    // But without it, the RAM gets eaten FAST
+    // std::vector<Event> temp_events {};
+    // while (!pq_.empty()) {
+    //   Event temp_e {pq_.top()};
+    //   pq_.pop();
+    //   if (temp_e.IsValid()) {
+    //     temp_events.push_back(temp_e);
+    //   }
+    // }
+    //
+    // for (const auto& ev : temp_events) {
+    //   pq_.push(ev);
+    // }
 
     // Predict the next events for particles a and b
     Predict(a);
