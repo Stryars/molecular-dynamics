@@ -8,4 +8,4 @@
 - [ ] Find a better way to handle simulation time and physical characteristics.
 - [ ] Display the flight time and flight distance distributions.
 - [ ] Try particle-jamming: Stillinger-Lubachevsky, etc.
-- [ ] Encode system's physical characteristics with colors.
+- [x] Encode system's physical characteristics with colors.

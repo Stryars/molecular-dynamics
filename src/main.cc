@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
           random_speed(rng), random_speed(rng),
           particle_radius,
           1,
-          sf::Color(random_color(rng), random_color(rng), random_color(rng))));
+          sf::Color::Red));
 
       y += 2 * particle_radius + space_between_particles;
     }

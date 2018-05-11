@@ -180,6 +180,24 @@ void CollisionSystem::DisplayCharacteristics(sf::Font& font,
       "FPS: " + std::to_string(fps), 30,
       sf::Color::White, WIDTH - 160, 0);
 
+  DrawText(font,
+      "Speed scale", 30,
+      sf::Color::White, WIDTH - 230, 340);
+
+  sf::VertexArray speed_scale(sf::Lines);
+  for (auto i {0}; i < 600; i += 2) {
+    for (auto j {0}; j < 2; ++j) {
+      float r {0}, g{0}, b {0};
+      HSVtoRGB(300 - i / 2, 1.0, 1.0, &r, &g, &b);
+      speed_scale.append(sf::Vertex(sf::Vector2f(WIDTH - 180, 400 + i + j),
+          sf::Color(r * 255, g * 255, b * 255)));
+      speed_scale.append(sf::Vertex(sf::Vector2f(WIDTH - 100, 400 + i + j),
+          sf::Color(r * 255, g * 255, b * 255)));
+    }
+  }
+
+  window_.draw(speed_scale);
+
   const double boltzmann_constant = 1.3806503e-23;
 
   DrawText(font,
@@ -361,6 +379,11 @@ int CollisionSystem::Simulate() {
     for (auto& particle : particles_) {
       particle.Move(e.GetTime() - time_);
       average_kinetic_energy += particle.KineticEnergy();
+
+      float hue {static_cast<float>(particle.GetSpeed() * 300.0 / 3.0)};
+      float red {0}, green {0}, blue {0};
+      HSVtoRGB(hue, 1.0, 1.0, &red, &green, &blue);
+      particle.SetColor(sf::Color(red * 255, green * 255, blue * 255));
     }
     average_kinetic_energy /= particles_.size();
     time_ = e.GetTime();
