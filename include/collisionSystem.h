@@ -5,6 +5,7 @@
 #include <vector>
 #include <queue>
 #include <functional>
+#include <string>
 
 #include "include/particle.h"
 #include "include/event.h"
@@ -26,11 +27,11 @@ class CollisionSystem {
   // Pauses the simulation.
   void Pause(sf::Keyboard::Key pause_key);
 
-  void DrawText(sf::Font& font, std::string str, int character_size,
-      sf::Color color, int x, int y);
+  void DrawText(const sf::Font& font, const std::string& str,
+      int character_size, sf::Color color, int x, int y);
 
   // Displays physical quantities (temperature, pressure, etc.) and helper text.
-  void DisplayCharacteristics(sf::Font& font, time_t elapsed_time,
+  void DisplayCharacteristics(const sf::Font& font, time_t elapsed_time,
       int collisions, double average_kinetic_energy, sf::Time frameTime);
 
   // Display the velocity histogram.

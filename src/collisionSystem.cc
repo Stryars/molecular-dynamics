@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <ctime>
 #include <sstream>
+#include <random>
 #include <cmath>
 
 #include "include/SFML/Graphics.hpp"
@@ -17,7 +18,7 @@
 CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
     window_ {sf::VideoMode(WIDTH, HEIGHT),
         "Molecular Dynamics", sf::Style::Titlebar | sf::Style::Close},
-    Hz_ {0.2},
+    Hz_ {0.5},
     time_ {0},
     particles_ {particles} {
   // Initialize the window
@@ -41,7 +42,7 @@ void CollisionSystem::Predict(Particle* a) {
     // Particle-particle collisions
     for (auto& particle : particles_) {
       double dt {a->TimeToHit(particle)};
-      if (dt != INFINITY) {
+      if (dt != INFINITY && dt >= 0.0) {
         pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a,
             &(particle)));
       }
@@ -132,7 +133,7 @@ void CollisionSystem::Pause(sf::Keyboard::Key pause_key) {
   }
 }
 
-void CollisionSystem::DrawText(sf::Font& font, std::string str,
+void CollisionSystem::DrawText(const sf::Font& font, const std::string& str,
     int character_size, sf::Color color, int x, int y) {
   sf::Text text;
   text.setFont(font);
@@ -144,52 +145,59 @@ void CollisionSystem::DrawText(sf::Font& font, std::string str,
 }
 
 // Displays physical quantities (temperature, pressure, etc.) and helper text.
-void CollisionSystem::DisplayCharacteristics(sf::Font& font,
+void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
     time_t elapsed_time, int collisions, double average_kinetic_energy,
     sf::Time frameTime) {
   DrawText(font,
-      "Press P to display/hide the particles.", 30,
+      "Press A to add a new particle.", 20,
       sf::Color::White, 0, HEIGHT - 240);
 
   DrawText(font,
-      "Press B to display/hide brownian motion.", 30,
-      sf::Color::White, 0, HEIGHT - 200);
+      "Press B to display/hide brownian motion.", 20,
+      sf::Color::White, 0, HEIGHT - 210);
 
   DrawText(font,
-      "Press Space to pause/unpause or start the simulation.", 30,
-      sf::Color::White, 0, HEIGHT - 160);
+      "Press C to clear brownian path.", 20,
+      sf::Color::White, 0, HEIGHT - 180);
 
   DrawText(font,
-      "Press Right Shift to visualise isosurface "
-      "(WARNING: VERY POOR PERFORMANCES).", 30,
+      "Press I to visualise isosurface (WARNING: VERY POOR PERFORMANCES).", 20,
+      sf::Color::White, 0, HEIGHT - 150);
+
+  DrawText(font,
+      "Press P to display/hide the particles.", 20,
       sf::Color::White, 0, HEIGHT - 120);
 
   DrawText(font,
-      "Press Left Shift to display the velocity histogram.", 30,
-      sf::Color::White, 0, HEIGHT - 80);
+      "Press Space to pause/unpause or start the simulation.", 20,
+      sf::Color::White, 0, HEIGHT - 90);
 
   DrawText(font,
-      "Press Escape to quit the simulation.", 30,
-      sf::Color::White, 0, HEIGHT - 40);
+      "Press Left Shift to display the velocity histogram.", 20,
+      sf::Color::White, 0, HEIGHT - 60);
+
+  DrawText(font,
+      "Press Escape to quit the simulation.", 20,
+      sf::Color::White, 0, HEIGHT - 30);
 
   int fps {static_cast<int>(1 / (frameTime.asMicroseconds() * pow(10, -6)))};
   if (fps < 0) {
     fps = 0;
   }
   DrawText(font,
-      "FPS: " + std::to_string(fps), 30,
-      sf::Color::White, WIDTH - 160, 0);
+      "FPS: " + std::to_string(fps), 20,
+      sf::Color::White, WIDTH - 100, 0);
 
   DrawText(font,
-      "Speed scale", 30,
-      sf::Color::White, WIDTH - 230, 340);
+      "Speed scale", 20,
+      sf::Color::White, WIDTH - 200, 340);
 
   sf::VertexArray speed_scale(sf::Lines);
   for (auto i {0}; i < 600; i += 2) {
     for (auto j {0}; j < 2; ++j) {
       float r {0}, g{0}, b {0};
       HSVtoRGB(300 - i / 2, 1.0, 1.0, &r, &g, &b);
-      speed_scale.append(sf::Vertex(sf::Vector2f(WIDTH - 180, 400 + i + j),
+      speed_scale.append(sf::Vertex(sf::Vector2f(WIDTH - 160, 400 + i + j),
           sf::Color(r * 255, g * 255, b * 255)));
       speed_scale.append(sf::Vertex(sf::Vector2f(WIDTH - 100, 400 + i + j),
           sf::Color(r * 255, g * 255, b * 255)));
@@ -201,7 +209,7 @@ void CollisionSystem::DisplayCharacteristics(sf::Font& font,
   const double boltzmann_constant = 1.3806503e-23;
 
   DrawText(font,
-      "Particles count: " + std::to_string(particles_.size()), 30,
+      "Particles count: " + std::to_string(particles_.size()), 20,
       sf::Color::White, 0, 0);
 
   std::string collisions_per_second {"0"};
@@ -209,15 +217,15 @@ void CollisionSystem::DisplayCharacteristics(sf::Font& font,
     collisions_per_second = std::to_string(collisions / elapsed_time);
   }
   DrawText(font,
-      "Collisions per second: " + collisions_per_second, 30,
-      sf::Color::White, 0, 40);
+      "Collisions per second: " + collisions_per_second, 20,
+      sf::Color::White, 0, 30);
 
   std::ostringstream streamEnerg;
   streamEnerg << average_kinetic_energy;
   std::string strEnerg = streamEnerg.str();
   DrawText(font,
-      "Av. kinetic energy: " + strEnerg + "J", 30,
-      sf::Color::White, 0, 80);
+      "Av. kinetic energy: " + strEnerg + "J", 20,
+      sf::Color::White, 0, 60);
 
   double temperature {(2.0 / 3.0)
       * average_kinetic_energy / boltzmann_constant};
@@ -225,8 +233,8 @@ void CollisionSystem::DisplayCharacteristics(sf::Font& font,
   streamTemp << temperature;
   std::string strTemp = streamTemp.str();
   DrawText(font,
-      "Temperature: " + strTemp + "K", 30,
-      sf::Color::White, 0, 120);
+      "Temperature: " + strTemp + "K", 20,
+      sf::Color::White, 0, 90);
 
   double pressure {(2.0 / 3.0) * average_kinetic_energy * particles_.size()
       / (HEIGHT * 0.6 * DISTANCE_UNIT * WIDTH * 0.6 * DISTANCE_UNIT)};
@@ -234,8 +242,25 @@ void CollisionSystem::DisplayCharacteristics(sf::Font& font,
   streamPress << pressure;
   std::string strPress = streamPress.str();
   DrawText(font,
-      "Pressure: " + strPress + "Pa", 30,
-      sf::Color::White, 0, 160);
+      "Pressure: " + strPress + "Pa", 20,
+      sf::Color::White, 0, 120);
+
+  double particles_area {0.0};
+  for (const auto& particle : particles_) {
+    particles_area += M_PI * pow(particle.GetRadius(), 2);
+  }
+  double packing_factor {particles_area / (BOX_WIDTH * BOX_HEIGHT)};
+  DrawText(font,
+      "Packing factor: " + std::to_string(packing_factor * 100) + "%", 20,
+      sf::Color::White, 0, 150);
+
+  DrawText(font,
+      "Time: " + std::to_string(time_), 20,
+      sf::Color::White, 600, 0);
+
+  DrawText(font,
+      "Priority queue size:" + std::to_string(pq_.size()) , 20,
+      sf::Color::White, 600, 30);
 }
 
 // Display the velocity histogram.
@@ -274,7 +299,14 @@ void CollisionSystem::DisplayVelocityHistogram() {
 
 // Simulates the system of particles for the specified amount of time
 int CollisionSystem::Simulate() {
-  // Check if isosurfaces need to be displayed
+  // Initialize random device
+  std::mt19937 rng {std::random_device()()};
+  std::uniform_real_distribution<double> random_speed(-1, 1);
+  std::uniform_real_distribution<double> random_position(
+        (WIDTH - BOX_WIDTH) / 2 + particles_[0].GetRadius(),
+        (WIDTH - BOX_WIDTH) / 2 + BOX_WIDTH - particles_[0].GetRadius());
+
+  // Booleans for displaying isosurfaces, particles, brownian motion, etc.
   bool isosurface {false};
   bool display_particles {true};
 
@@ -320,6 +352,7 @@ int CollisionSystem::Simulate() {
 
   // Main simulation loop
   while (window_.isOpen() && !pq_.empty()) {
+    // printf("Time: %lf\n", time_);
     // printf("PQ size: %lu\n", pq_.size());
     sf::Event event;
     // Process user events
@@ -341,7 +374,7 @@ int CollisionSystem::Simulate() {
           if (event.key.code == sf::Keyboard::LShift) {
             DisplayVelocityHistogram();
           // Right Shift: display isosurfaces
-          } else if (event.key.code == sf::Keyboard::RShift) {
+          } else if (event.key.code == sf::Keyboard::I) {
             isosurface = !isosurface;
           // Space: pause the simulation
           } else if (event.key.code == sf::Keyboard::Space) {
@@ -349,9 +382,29 @@ int CollisionSystem::Simulate() {
           // B: display brownian path
           } else if (event.key.code == sf::Keyboard::B) {
             display_brownian_path = !display_brownian_path;
+          // C: clear the brownian path
+          } else if (event.key.code == sf::Keyboard::C) {
+            brownian_path.clear();
           // P: display particles
           } else if (event.key.code == sf::Keyboard::P) {
             display_particles = !display_particles;
+          /// A: add a new particle
+          } else if (event.key.code == sf::Keyboard::A) {
+            while (!pq_.empty()) {
+              pq_.pop();
+            }
+            particles_.push_back(Particle(
+                random_position(rng),
+                random_position(rng),
+                random_speed(rng), random_speed(rng),
+                particles_[0].GetRadius() / 2,
+                0.25,
+                sf::Color::Red));
+            for (auto& particle : particles_) {
+              Predict(&particle);
+            }
+
+            pq_.push(Event(Event::Type::kRedraw, time_, nullptr, nullptr));
           }
           break;
         default:
@@ -386,6 +439,11 @@ int CollisionSystem::Simulate() {
       particle.SetColor(sf::Color(red * 255, green * 255, blue * 255));
     }
     average_kinetic_energy /= particles_.size();
+    double event_time {e.GetTime()};
+    if (event_time < time_) {
+      printf("Invalid event time.\n");
+      exit(1);
+    }
     time_ = e.GetTime();
 
     if (a == brownian_particle) {

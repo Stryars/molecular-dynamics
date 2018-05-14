@@ -4,14 +4,15 @@
 
 #include <random>
 
-#include "SFML/Graphics.hpp"
+#include "include/SFML/Graphics.hpp"
+#include "include/main.h"
 
 class Particle {
  public:
   // Initializes a particle with specified position, velocity, radius,
   // mass and color.
-  Particle(double rx, double ry, double vx, double vy, const double radius,
-    const double mass, sf::Color color);
+  Particle(double rx, double ry, double vx, double vy,
+      double radius, double mass, sf::Color color);
 
   // Necessary for TimeToHit().
   bool operator==(const Particle& rhs) const;
@@ -65,10 +66,10 @@ class Particle {
   // Sets the particle's color.
   void SetColor(sf::Color color);
 
-  // Returns the rx coordinate
+  // Returns the rx coordinate.
   double GetRx() const;
 
-  // Returns the ry coordinate
+  // Returns the ry coordinate.
   double GetRy() const;
 
  private:
@@ -78,7 +79,7 @@ class Particle {
   int collisions_count_;      // Number of collisions so far
 
   double radius_;             // Radius
-  const double mass_;         // Mass
+  double mass_;         // Mass
 
   sf::Color color_;           // Color
 

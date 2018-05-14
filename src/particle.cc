@@ -11,8 +11,8 @@
 
 // Initializes a particle with specified position, velocity, radius,
 // mass and color.
-Particle::Particle(double rx, double ry, double vx, double vy,
-    const double radius, const double mass, sf::Color color) :
+Particle::Particle(double rx, double ry, double vx,
+    double vy, double radius, double mass, sf::Color color) :
     rx_ {rx}, ry_ {ry},
     vx_ {vx}, vy_ {vy},
     collisions_count_ {0},
@@ -74,6 +74,7 @@ double Particle::TimeToHit(const Particle& that) const {
   double sigma {radius_ + that.radius_};
   if (drdr - sigma * sigma < 0) {
     printf("Overlapping particles: %ld.\n", time(NULL));
+    return INFINITY;
   }
 
   double d {(dvdr * dvdr) - dvdv * (drdr - sigma * sigma)};
@@ -131,10 +132,10 @@ void Particle::BounceOff(Particle* that) {
   double fy {magnitude * dy / dist};
 
   // Update velocities according to normal force
-  vx_ += fx / mass_;
-  vy_ += fy / mass_;
-  that->vx_ -= fx / that->mass_;
-  that->vy_ -= fy / that->mass_;
+  vx_ += FRICTION * fx / mass_;
+  vy_ += FRICTION * fy / mass_;
+  that->vx_ -= FRICTION * fx / that->mass_;
+  that->vy_ -= FRICTION * fy / that->mass_;
 
   // Update collision counts
   collisions_count_++;
@@ -184,12 +185,12 @@ void Particle::SetColor(sf::Color color) {
   circle_.setFillColor(color_);
 }
 
-// Returns the rx coordinate
+// Returns the rx coordinate.
 double Particle::GetRx() const {
   return rx_;
 }
 
-// Returns the ry coordinate
+// Returns the ry coordinate.
 double Particle::GetRy() const {
   return ry_;
 }

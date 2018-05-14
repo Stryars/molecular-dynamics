@@ -32,7 +32,6 @@ int main(int argc, char* argv[]) {
 
   std::mt19937 rng {std::random_device()()};
   std::uniform_real_distribution<double> random_speed(-1, 1);
-  std::uniform_int_distribution<int> random_color(0, 255);
 
   // Initialization of the particles collection
   std::vector<Particle> particles {};
