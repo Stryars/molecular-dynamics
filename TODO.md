@@ -9,3 +9,4 @@
 - [ ] Display the flight time and flight distance distributions.
 - [ ] Try particle-jamming: Stillinger-Lubachevsky, etc.
 - [x] Encode system's physical characteristics with colors.
+- [ ] Replace the isosurface visualisation by a shader.

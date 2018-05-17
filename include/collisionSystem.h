@@ -41,7 +41,7 @@ class CollisionSystem {
       int collisions, double average_kinetic_energy, sf::Time frameTime);
 
   // Display the velocity histogram.
-  void DisplayVelocityHistogram();
+  void DisplayVelocityHistogram(double average_kinetic_energy);
 
   // Simulates the system of particles for the specified amount of time.
   int Simulate();

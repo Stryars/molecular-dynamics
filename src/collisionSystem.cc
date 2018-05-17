@@ -74,7 +74,7 @@ void CollisionSystem::RegenerateEvents() {
 // Redraws all particles.
 void CollisionSystem::Redraw(bool display_isosurface) {
   if (display_isosurface == true && window_.isOpen()) {
-    sf::Uint8 pixels[BOX_WIDTH * BOX_HEIGHT * 4];
+    sf::Uint8 pixels[static_cast<int>(BOX_WIDTH * BOX_HEIGHT * 4)];
 
     sf::Texture texture;
     texture.create(BOX_WIDTH, BOX_HEIGHT);
@@ -83,7 +83,7 @@ void CollisionSystem::Redraw(bool display_isosurface) {
 
     for (auto x {0}; x < BOX_WIDTH; ++x) {
       for (auto y {0}; y < BOX_HEIGHT; ++y) {
-        int index {(x + y * BOX_WIDTH) * 4};
+        int index {static_cast<int>((x + y * BOX_WIDTH) * 4)};
         float sum {0};
         for (const auto& particle : particles_) {
           double rx {particle.GetRx()}, ry {particle.GetRy()};
@@ -184,12 +184,25 @@ void CollisionSystem::DisplayHelp(const sf::Font& font) {
       sf::Color::White, 0, 150);
 
   DrawText(font,
-      "Press Space to pause/unpause or start the simulation.", 20,
+      "Press O to clear overlapped particles.", 20,
       sf::Color::White, 0, 180);
 
   DrawText(font,
-      "Press Escape to quit the simulation.", 20,
+      "Press S to display/hide the simulation.", 20,
       sf::Color::White, 0, 210);
+
+  DrawText(font,
+      "Press Space to pause/unpause or start the simulation.", 20,
+      sf::Color::White, 0, 240);
+
+  DrawText(font,
+      "Press Escape to quit the simulation.", 20,
+      sf::Color::White, 0, 270);
+
+  DrawText(font,
+      "The histogram displays the real velocity distribution in red\n"
+      "and the Maxwell-Boltzmann probability density function in white.", 20,
+      sf::Color::White, 0, 400);
 
   window_.display();
 
@@ -202,7 +215,7 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
     sf::Time frameTime) {
   DrawText(font,
       "Press H to display/hide the help.", 20,
-      sf::Color::White, 0, HEIGHT - 30);
+      sf::Color::White, 600, 60);
 
   int fps {static_cast<int>(1 / (frameTime.asMicroseconds() * pow(10, -6)))};
   if (fps < 0) {
@@ -230,7 +243,7 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
 
   window_.draw(speed_scale);
 
-  const double boltzmann_constant = 1.3806503e-23;
+  const double boltzmann_constant {1.3806503e-23};
 
   DrawText(font,
       "Particles count: " + std::to_string(particles_.size()), 20,
@@ -288,33 +301,48 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
 }
 
 // Display the velocity histogram.
-void CollisionSystem::DisplayVelocityHistogram() {
-  const int max_speed {3000};
-  const float bucket_size {50};
+void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
+  const int max_speed {10};
+  const float bucket_size {0.02};
   int number_of_buckets {static_cast<int>(ceil(max_speed / bucket_size))};
 
   std::vector<int> speed_histogram(number_of_buckets);
 
   for (auto& particle : particles_) {
-    int bucket {static_cast<int>(floor(particle.GetSpeed()
-        * SPEED_UNIT / bucket_size))};
+    int bucket {static_cast<int>(floor(particle.GetSpeed() / bucket_size))};
     speed_histogram[bucket]++;
   }
 
   for (auto i {0}; i < number_of_buckets; ++i) {
-    sf::RectangleShape line(sf::Vector2f(1, speed_histogram[i] *
-        180 / particles_.size()));
+    sf::RectangleShape line(sf::Vector2f(1000 * bucket_size / 4,
+        speed_histogram[i] * 3 * BOX_HEIGHT / particles_.size()));
     line.rotate(180);
-    line.setFillColor(sf::Color::White);
-    line.setPosition(i * bucket_size / 2, HEIGHT - 100);
+    line.setFillColor(sf::Color::Red);
+    line.setPosition(1000 * i * bucket_size / 2, HEIGHT - 5);
     window_.draw(line);
   }
 
   sf::RectangleShape horizontal_line(sf::Vector2f(WIDTH, 5));
   horizontal_line.setFillColor(sf::Color::White);
-  horizontal_line.setPosition(0, HEIGHT - 100);
+  horizontal_line.setPosition(0, HEIGHT - 5);
   window_.draw(horizontal_line);
 
+  // Maxwell-Boltzmann probability density function
+  sf::VertexArray maxwell_boltzmann(sf::LinesStrip);
+  const double boltzmann_constant {1.3806503e-23};
+  double mass {MASS_UNIT};
+  double temperature {(2.0 / 3.0)
+      * average_kinetic_energy / boltzmann_constant};
+  for (int i {0}; i < number_of_buckets; ++i) {
+    double y {pow(mass / (2 * M_PI * boltzmann_constant * temperature), 3 / 2)
+        * 4 * M_PI * pow(i * bucket_size * SPEED_UNIT, 2)
+        * exp(-mass * pow(i * bucket_size * SPEED_UNIT, 2)
+        / (2 * boltzmann_constant * temperature))};
+    maxwell_boltzmann.append(sf::Vector2f(1000 * i * bucket_size / 2,
+        HEIGHT - 5 - 100 * y));
+  }
+
+  window_.draw(maxwell_boltzmann);
 }
 
 // Simulates the system of particles for the specified amount of time
@@ -331,6 +359,7 @@ int CollisionSystem::Simulate() {
   bool display_isosurface {false};
   bool display_particles {true};
   bool display_brownian_path {false};
+  bool display_simulation {true};
 
   // Brownian motion path
   // Storing an index and not a pointer to the particle because of heap
@@ -441,11 +470,13 @@ int CollisionSystem::Simulate() {
             for (const auto& particle : overlapped_particles) {
               ptrdiff_t pos = distance(particles_.begin(),
                   find(particles_.begin(), particles_.end(), particle));
-              printf("Test\n");
               particles_.erase(particles_.begin() + pos);
             }
 
             RegenerateEvents();
+          // S: display the simulation
+          } else if (event.key.code == sf::Keyboard::S) {
+            display_simulation = !display_simulation;
           // Space: pause the simulation
           } else if (event.key.code == sf::Keyboard::Space) {
             Pause(sf::Keyboard::Space);
@@ -481,6 +512,7 @@ int CollisionSystem::Simulate() {
       // Change the particle's color based on its speed
       float hue {static_cast<float>(particle.GetSpeed() * 300.0 / 3.0)};
       float red {0}, green {0}, blue {0};
+      // Using HSV color space is easier to color the particles
       HSVtoRGB(hue, 1.0, 1.0, &red, &green, &blue);
       particle.SetColor(sf::Color(red * 255, green * 255, blue * 255));
     }
@@ -518,15 +550,17 @@ int CollisionSystem::Simulate() {
         DisplayCharacteristics(source_code_pro, elapsed_time,
             collisions, average_kinetic_energy, frameTime);
 
-        DisplayVelocityHistogram();
+        DisplayVelocityHistogram(average_kinetic_energy);
 
-        window_.draw(simulation_box);
+        if (display_simulation) {
+          window_.draw(simulation_box);
 
-        if (display_particles) {
-          Redraw(display_isosurface);
-        }
-        if (display_brownian_path) {
-          window_.draw(brownian_path);
+          if (display_particles) {
+            Redraw(display_isosurface);
+          }
+          if (display_brownian_path) {
+            window_.draw(brownian_path);
+          }
         }
 
         window_.display();
