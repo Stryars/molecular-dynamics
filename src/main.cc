@@ -3,8 +3,8 @@
 #include <iostream>
 #include <random>
 #include <sstream>
+#include <SFML/Graphics.hpp>
 
-#include "include/SFML/Graphics.hpp"
 #include "include/main.h"
 #include "include/particle.h"
 #include "include/collisionSystem.h"
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
   while (x + particle_radius < 0.8 * WIDTH) {
     y = 0.2 * HEIGHT + particle_radius * 2;
     while (y + particle_radius < 0.8 * HEIGHT) {
-      particles.push_back(Particle(x, y,
+      particles.push_back(Particle(0, x, y,
           random_speed(rng), random_speed(rng),
           particle_radius,
           1,

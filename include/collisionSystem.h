@@ -21,6 +21,9 @@ class CollisionSystem {
   // Updates priority queue with all new events for particle a.
   void Predict(Particle* a);
 
+  // Empties the priority queue and predicts all future events.
+  void RegenerateEvents();
+
   // Redraws all particles.
   void Redraw(bool isosurface);
 

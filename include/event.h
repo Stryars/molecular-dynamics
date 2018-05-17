@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "particle.h"
+#include "include/particle.h"
 
 // A class describing an event: particle-particle collision, particle-wall
 // collision or redraw of each particle.
@@ -17,7 +17,7 @@ class Event {
   };
 
   // Initializes a new event to occur at time t, involving particles a and b.
-  Event(Type type, double t, Particle* a, Particle* b);
+  Event(Type type, double t, Particle* a = nullptr, Particle* b = nullptr);
 
   // > operator for the piority queue.
   bool operator>(const Event& rhs) const;

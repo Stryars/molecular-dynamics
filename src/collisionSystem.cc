@@ -6,8 +6,8 @@
 #include <sstream>
 #include <random>
 #include <cmath>
+#include <SFML/Graphics.hpp>
 
-#include "include/SFML/Graphics.hpp"
 #include "include/main.h"
 #include "include/collisionSystem.h"
 #include "include/particle.h"
@@ -30,7 +30,7 @@ CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
   }
 
   // First redraw event
-  pq_.push(Event(Event::Type::kRedraw, 0, nullptr, nullptr));
+  pq_.push(Event(Event::Type::kRedraw, 0));
 }
 
 // Empty constructor: prevents a segmentation fault.
@@ -42,22 +42,35 @@ void CollisionSystem::Predict(Particle* a) {
     // Particle-particle collisions
     for (auto& particle : particles_) {
       double dt {a->TimeToHit(particle)};
-      if (dt != INFINITY && dt >= 0.0) {
+      if (dt < 0) {
+        printf("Negative time.\n");
+      } else if (dt != INFINITY && dt >= 0.0) {
         pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a,
-            &(particle)));
+            &particle));
       }
     }
 
     // Particle-wall collisions
     double dtX {a->TimeToHitVerticalWall()};
     if (dtX != INFINITY) {
-      pq_.push(Event(Event::Type::kVerticalWall, time_ + dtX, a, nullptr));
+      pq_.push(Event(Event::Type::kVerticalWall, time_ + dtX, a));
     }
     double dtY {a->TimeToHitHorizontalWall()};
     if (dtY != INFINITY) {
-      pq_.push(Event(Event::Type::kHorizontalWall, time_ + dtY, nullptr, a));
+      pq_.push(Event(Event::Type::kHorizontalWall, time_ + dtY, a));
     }
   }
+}
+
+// Empties the priority queue and predicts all future events.
+void CollisionSystem::RegenerateEvents() {
+  while (!pq_.empty()) {
+    pq_.pop();
+  }
+  for (auto& particle : particles_) {
+    Predict(&particle);
+  }
+  pq_.push(Event(Event::Type::kRedraw, time_));
 }
 
 // Redraws all particles.
@@ -97,7 +110,7 @@ void CollisionSystem::Redraw(bool isosurface) {
     window_.draw(sprite);
   } else {
     for (const auto& particle : particles_) {
-      particle.Draw(window_);
+      particle.Draw(&window_);
     }
   }
 }
@@ -299,7 +312,8 @@ void CollisionSystem::DisplayVelocityHistogram() {
 
 // Simulates the system of particles for the specified amount of time
 int CollisionSystem::Simulate() {
-  // Initialize random device
+  // Initialize random device for random position and speed when adding new
+  // particles
   std::mt19937 rng {std::random_device()()};
   std::uniform_real_distribution<double> random_speed(-1, 1);
   std::uniform_real_distribution<double> random_position(
@@ -309,11 +323,13 @@ int CollisionSystem::Simulate() {
   // Booleans for displaying isosurfaces, particles, brownian motion, etc.
   bool isosurface {false};
   bool display_particles {true};
+  bool display_brownian_path {false};
 
   // Brownian motion path
-  bool display_brownian_path {false};
+  // Storing an index and not a pointer to the particle because of heap
+  // reallocation when calling std::vector::push_back()
   sf::VertexArray brownian_path(sf::LinesStrip);
-  Particle* brownian_particle {&(particles_[particles_.size() / 2])};
+  int brownian_particle_index = particles_.size() / 2;
 
   // Initialize the font
   sf::Font source_code_pro;
@@ -390,21 +406,39 @@ int CollisionSystem::Simulate() {
             display_particles = !display_particles;
           /// A: add a new particle
           } else if (event.key.code == sf::Keyboard::A) {
-            while (!pq_.empty()) {
-              pq_.pop();
-            }
-            particles_.push_back(Particle(
-                random_position(rng),
-                random_position(rng),
+            particles_.push_back(Particle(time_,
+                random_position(rng), random_position(rng),
                 random_speed(rng), random_speed(rng),
                 particles_[0].GetRadius() / 2,
                 0.25,
                 sf::Color::Red));
-            for (auto& particle : particles_) {
-              Predict(&particle);
+
+            // The event priority queue is regenerated to account for the new
+            // particle
+            RegenerateEvents();
+          } else if (event.key.code == sf::Keyboard::O) {
+            printf("Test");
+            std::vector<Particle> overlapped_particles;
+            for (auto& a : particles_) {
+              for (auto& b : particles_) {
+                double t {a.TimeToHit(b)};
+                if (t < 0) {
+                  if (a.GetBirthdate() <= b.GetBirthdate()) {
+                    overlapped_particles.push_back(b);
+                  } else {
+                    overlapped_particles.push_back(a);
+                  }
+                }
+              }
             }
 
-            pq_.push(Event(Event::Type::kRedraw, time_, nullptr, nullptr));
+            for (const auto& particle : overlapped_particles) {
+              ptrdiff_t pos = distance(particles_.begin(),
+                  find(particles_.begin(), particles_.end(), particle));
+              particles_.erase(particles_.begin() + pos);
+            }
+
+            RegenerateEvents();
           }
           break;
         default:
@@ -415,7 +449,7 @@ int CollisionSystem::Simulate() {
     // Get the next valid event from the priority queue
     Event e = pq_.top();
     pq_.pop();
-    while (e.IsValid() == false) {
+    while (e.IsValid() == false || e.GetTime() < time_) {
       e = pq_.top();
       pq_.pop();
     }
@@ -439,16 +473,11 @@ int CollisionSystem::Simulate() {
       particle.SetColor(sf::Color(red * 255, green * 255, blue * 255));
     }
     average_kinetic_energy /= particles_.size();
-    double event_time {e.GetTime()};
-    if (event_time < time_) {
-      printf("Invalid event time.\n");
-      exit(1);
-    }
     time_ = e.GetTime();
 
-    if (a == brownian_particle) {
+    if (a == &(particles_[brownian_particle_index])) {
       brownian_path.append(sf::Vector2f(a->GetRx(), a->GetRy()));
-    } else if (b == brownian_particle) {
+    } else if (b == &(particles_[brownian_particle_index])) {
       brownian_path.append(sf::Vector2f(b->GetRx(), b->GetRy()));
     }
 
@@ -466,7 +495,7 @@ int CollisionSystem::Simulate() {
         break;
       // Particle-horizontal wall collision
       case Event::Type::kHorizontalWall:
-      b->BounceOffHorizontalWall();
+        a->BounceOffHorizontalWall();
         collisions++;
         break;
       // Redraw event
@@ -492,8 +521,7 @@ int CollisionSystem::Simulate() {
         frameTime = clock.restart();
 
         // Add a redraw event to the priority queue
-        pq_.push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_,
-            nullptr, nullptr));
+        pq_.push(Event(Event::Type::kRedraw, time_ + 1.0 / Hz_));
         break;
       default:
         printf("Error: event type invalid.\n");

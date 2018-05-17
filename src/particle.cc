@@ -3,16 +3,16 @@
 #include <cstdio>
 #include <cmath>
 #include <ctime>
-
-#include "include/SFML/Graphics.hpp"
+#include <SFML/Graphics.hpp>
 
 #include "include/main.h"
 #include "include/particle.h"
 
 // Initializes a particle with specified position, velocity, radius,
 // mass and color.
-Particle::Particle(double rx, double ry, double vx,
+Particle::Particle(double birthdate, double rx, double ry, double vx,
     double vy, double radius, double mass, sf::Color color) :
+    birthdate_ {birthdate},
     rx_ {rx}, ry_ {ry},
     vx_ {vx}, vy_ {vy},
     collisions_count_ {0},
@@ -38,8 +38,8 @@ void Particle::Move(double dt) {
 }
 
 // Draws this particle on the SFML window.
-void Particle::Draw(sf::RenderWindow& window) const {
-  window.draw(circle_);
+void Particle::Draw(sf::RenderWindow* window) const {
+  window->draw(circle_);
 }
 
 // Returns the number of collisions involving this particle with either
@@ -74,7 +74,7 @@ double Particle::TimeToHit(const Particle& that) const {
   double sigma {radius_ + that.radius_};
   if (drdr - sigma * sigma < 0) {
     printf("Overlapping particles: %ld.\n", time(NULL));
-    return INFINITY;
+    // return INFINITY;
   }
 
   double d {(dvdr * dvdr) - dvdv * (drdr - sigma * sigma)};
@@ -193,4 +193,9 @@ double Particle::GetRx() const {
 // Returns the ry coordinate.
 double Particle::GetRy() const {
   return ry_;
+}
+
+// Returns the particle's birthdate.
+double Particle::GetBirthdate() const {
+  return birthdate_;
 }

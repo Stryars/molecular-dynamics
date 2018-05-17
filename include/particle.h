@@ -3,15 +3,15 @@
 #pragma once
 
 #include <random>
+#include <SFML/Graphics.hpp>
 
-#include "include/SFML/Graphics.hpp"
 #include "include/main.h"
 
 class Particle {
  public:
   // Initializes a particle with specified position, velocity, radius,
   // mass and color.
-  Particle(double rx, double ry, double vx, double vy,
+  Particle(double birthdate, double rx, double ry, double vx, double vy,
       double radius, double mass, sf::Color color);
 
   // Necessary for TimeToHit().
@@ -22,7 +22,7 @@ class Particle {
   void Move(double dt);
 
   // Draws this particle on the SFML window.
-  void Draw(sf::RenderWindow& window) const;
+  void Draw(sf::RenderWindow* window) const;
 
   // Returns the number of collisions involving this particle with either
   // walls or other particles.
@@ -72,7 +72,12 @@ class Particle {
   // Returns the ry coordinate.
   double GetRy() const;
 
+  // Returns the particle's birthdate.
+  double GetBirthdate() const;
+
  private:
+  double birthdate_;
+
   double rx_, ry_;            // Position
   double vx_, vy_;            // Velocity
 
