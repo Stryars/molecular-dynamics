@@ -33,6 +33,9 @@ class CollisionSystem {
   void DrawText(const sf::Font& font, const std::string& str,
       int character_size, sf::Color color, int x, int y);
 
+  // Displays helper text.
+  void DisplayHelp(const sf::Font& font);
+
   // Displays physical quantities (temperature, pressure, etc.) and helper text.
   void DisplayCharacteristics(const sf::Font& font, time_t elapsed_time,
       int collisions, double average_kinetic_energy, sf::Time frameTime);

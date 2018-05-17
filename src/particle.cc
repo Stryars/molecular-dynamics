@@ -72,10 +72,10 @@ double Particle::TimeToHit(const Particle& that) const {
 
   // Distance between particles centers
   double sigma {radius_ + that.radius_};
-  if (drdr - sigma * sigma < 0) {
-    printf("Overlapping particles: %ld.\n", time(NULL));
-    // return INFINITY;
-  }
+  // if (drdr - sigma * sigma < 0) {
+  //   printf("Overlapping particles: %ld.\n", time(NULL));
+  //   return INFINITY;
+  // }
 
   double d {(dvdr * dvdr) - dvdv * (drdr - sigma * sigma)};
   if (d < 0) {

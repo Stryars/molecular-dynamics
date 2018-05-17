@@ -42,9 +42,7 @@ void CollisionSystem::Predict(Particle* a) {
     // Particle-particle collisions
     for (auto& particle : particles_) {
       double dt {a->TimeToHit(particle)};
-      if (dt < 0) {
-        printf("Negative time.\n");
-      } else if (dt != INFINITY && dt >= 0.0) {
+      if (dt != INFINITY && dt >= 0.0) {
         pq_.push(Event(Event::Type::kParticleParticle, time_ + dt, a,
             &particle));
       }
@@ -74,8 +72,8 @@ void CollisionSystem::RegenerateEvents() {
 }
 
 // Redraws all particles.
-void CollisionSystem::Redraw(bool isosurface) {
-  if (isosurface == true && window_.isOpen()) {
+void CollisionSystem::Redraw(bool display_isosurface) {
+  if (display_isosurface == true && window_.isOpen()) {
     sf::Uint8 pixels[BOX_WIDTH * BOX_HEIGHT * 4];
 
     sf::Texture texture;
@@ -157,40 +155,53 @@ void CollisionSystem::DrawText(const sf::Font& font, const std::string& str,
   window_.draw(text);
 }
 
+// Displays helper text.
+void CollisionSystem::DisplayHelp(const sf::Font& font) {
+  window_.clear(sf::Color::Black);
+
+  DrawText(font,
+      "Press A to add a new particle at a random position.", 20,
+      sf::Color::White, 0, 0);
+
+  DrawText(font,
+      "Press B to display/hide brownian motion.", 20,
+      sf::Color::White, 0, 30);
+
+  DrawText(font,
+      "Press C to clear brownian path.", 20,
+      sf::Color::White, 0, 60);
+
+  DrawText(font,
+      "Press H to display/hide the help.", 20,
+      sf::Color::White, 0, 90);
+
+  DrawText(font,
+      "Press I to visualise isosurface (WARNING: VERY POOR PERFORMANCES).", 20,
+      sf::Color::White, 0, 120);
+
+  DrawText(font,
+      "Press P to display/hide the particles.", 20,
+      sf::Color::White, 0, 150);
+
+  DrawText(font,
+      "Press Space to pause/unpause or start the simulation.", 20,
+      sf::Color::White, 0, 180);
+
+  DrawText(font,
+      "Press Escape to quit the simulation.", 20,
+      sf::Color::White, 0, 210);
+
+  window_.display();
+
+  Pause(sf::Keyboard::H);
+}
+
 // Displays physical quantities (temperature, pressure, etc.) and helper text.
 void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
     time_t elapsed_time, int collisions, double average_kinetic_energy,
     sf::Time frameTime) {
   DrawText(font,
-      "Press A to add a new particle.", 20,
-      sf::Color::White, 0, HEIGHT - 240);
-
-  DrawText(font,
-      "Press B to display/hide brownian motion.", 20,
-      sf::Color::White, 0, HEIGHT - 210);
-
-  DrawText(font,
-      "Press C to clear brownian path.", 20,
-      sf::Color::White, 0, HEIGHT - 180);
-
-  DrawText(font,
-      "Press I to visualise isosurface (WARNING: VERY POOR PERFORMANCES).", 20,
-      sf::Color::White, 0, HEIGHT - 150);
-
-  DrawText(font,
-      "Press P to display/hide the particles.", 20,
-      sf::Color::White, 0, HEIGHT - 120);
-
-  DrawText(font,
-      "Press Space to pause/unpause or start the simulation.", 20,
-      sf::Color::White, 0, HEIGHT - 90);
-
-  DrawText(font,
-      "Press Left Shift to display the velocity histogram.", 20,
-      sf::Color::White, 0, HEIGHT - 60);
-
-  DrawText(font,
-      "Press Escape to quit the simulation.", 20,
+      "Press H to display/hide the help.", 20,
       sf::Color::White, 0, HEIGHT - 30);
 
   int fps {static_cast<int>(1 / (frameTime.asMicroseconds() * pow(10, -6)))};
@@ -278,8 +289,8 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
 
 // Display the velocity histogram.
 void CollisionSystem::DisplayVelocityHistogram() {
-  const int max_speed {2500};
-  const float bucket_size {10};
+  const int max_speed {3000};
+  const float bucket_size {50};
   int number_of_buckets {static_cast<int>(ceil(max_speed / bucket_size))};
 
   std::vector<int> speed_histogram(number_of_buckets);
@@ -290,10 +301,9 @@ void CollisionSystem::DisplayVelocityHistogram() {
     speed_histogram[bucket]++;
   }
 
-  window_.clear(sf::Color::Black);
-
   for (auto i {0}; i < number_of_buckets; ++i) {
-    sf::RectangleShape line(sf::Vector2f(1, speed_histogram[i] * 80));
+    sf::RectangleShape line(sf::Vector2f(1, speed_histogram[i] *
+        180 / particles_.size()));
     line.rotate(180);
     line.setFillColor(sf::Color::White);
     line.setPosition(i * bucket_size / 2, HEIGHT - 100);
@@ -305,9 +315,6 @@ void CollisionSystem::DisplayVelocityHistogram() {
   horizontal_line.setPosition(0, HEIGHT - 100);
   window_.draw(horizontal_line);
 
-  window_.display();
-
-  Pause(sf::Keyboard::LShift);
 }
 
 // Simulates the system of particles for the specified amount of time
@@ -321,7 +328,7 @@ int CollisionSystem::Simulate() {
         (WIDTH - BOX_WIDTH) / 2 + BOX_WIDTH - particles_[0].GetRadius());
 
   // Booleans for displaying isosurfaces, particles, brownian motion, etc.
-  bool isosurface {false};
+  bool display_isosurface {false};
   bool display_particles {true};
   bool display_brownian_path {false};
 
@@ -360,7 +367,7 @@ int CollisionSystem::Simulate() {
   DisplayCharacteristics(source_code_pro, elapsed_time, collisions,
       0, sf::Time {});
   window_.draw(simulation_box);
-  Redraw(isosurface);
+  Redraw(display_isosurface);
 
   window_.display();
 
@@ -386,26 +393,8 @@ int CollisionSystem::Simulate() {
           }
           break;
         case sf::Event::KeyReleased:
-          // Left Shift: display the velocity histogram
-          if (event.key.code == sf::Keyboard::LShift) {
-            DisplayVelocityHistogram();
-          // Right Shift: display isosurfaces
-          } else if (event.key.code == sf::Keyboard::I) {
-            isosurface = !isosurface;
-          // Space: pause the simulation
-          } else if (event.key.code == sf::Keyboard::Space) {
-            Pause(sf::Keyboard::Space);
-          // B: display brownian path
-          } else if (event.key.code == sf::Keyboard::B) {
-            display_brownian_path = !display_brownian_path;
-          // C: clear the brownian path
-          } else if (event.key.code == sf::Keyboard::C) {
-            brownian_path.clear();
-          // P: display particles
-          } else if (event.key.code == sf::Keyboard::P) {
-            display_particles = !display_particles;
-          /// A: add a new particle
-          } else if (event.key.code == sf::Keyboard::A) {
+          // A: add a new particle
+          if (event.key.code == sf::Keyboard::A) {
             particles_.push_back(Particle(time_,
                 random_position(rng), random_position(rng),
                 random_speed(rng), random_speed(rng),
@@ -416,11 +405,28 @@ int CollisionSystem::Simulate() {
             // The event priority queue is regenerated to account for the new
             // particle
             RegenerateEvents();
+          // B: display brownian path
+          } else if (event.key.code == sf::Keyboard::B) {
+              display_brownian_path = !display_brownian_path;
+          // C: clear the brownian path
+          } else if (event.key.code == sf::Keyboard::C) {
+            brownian_path.clear();
+          // H: display helper text
+          } else if (event.key.code == sf::Keyboard::H) {
+            DisplayHelp(source_code_pro);
+          // I: display isosurfaces
+          } else if (event.key.code == sf::Keyboard::I) {
+            display_isosurface = !display_isosurface;
+          // P: display particles
+          } else if (event.key.code == sf::Keyboard::P) {
+            display_particles = !display_particles;
+          // O: delete overlapped particles
           } else if (event.key.code == sf::Keyboard::O) {
-            printf("Test");
             std::vector<Particle> overlapped_particles;
-            for (auto& a : particles_) {
-              for (auto& b : particles_) {
+            for (unsigned int i {0}; i < particles_.size(); ++i) {
+              for (unsigned int j {i}; j < particles_.size(); ++j) {
+                Particle a = particles_[i];
+                Particle b = particles_[j];
                 double t {a.TimeToHit(b)};
                 if (t < 0) {
                   if (a.GetBirthdate() <= b.GetBirthdate()) {
@@ -435,10 +441,14 @@ int CollisionSystem::Simulate() {
             for (const auto& particle : overlapped_particles) {
               ptrdiff_t pos = distance(particles_.begin(),
                   find(particles_.begin(), particles_.end(), particle));
+              printf("Test\n");
               particles_.erase(particles_.begin() + pos);
             }
 
             RegenerateEvents();
+          // Space: pause the simulation
+          } else if (event.key.code == sf::Keyboard::Space) {
+            Pause(sf::Keyboard::Space);
           }
           break;
         default:
@@ -465,8 +475,10 @@ int CollisionSystem::Simulate() {
     // calculate average kinetic energy
     for (auto& particle : particles_) {
       particle.Move(e.GetTime() - time_);
+
       average_kinetic_energy += particle.KineticEnergy();
 
+      // Change the particle's color based on its speed
       float hue {static_cast<float>(particle.GetSpeed() * 300.0 / 3.0)};
       float red {0}, green {0}, blue {0};
       HSVtoRGB(hue, 1.0, 1.0, &red, &green, &blue);
@@ -506,11 +518,13 @@ int CollisionSystem::Simulate() {
         DisplayCharacteristics(source_code_pro, elapsed_time,
             collisions, average_kinetic_energy, frameTime);
 
-        window_.draw(simulation_box);
-        if (display_particles) {
-          Redraw(isosurface);
-        }
+        DisplayVelocityHistogram();
 
+        window_.draw(simulation_box);
+
+        if (display_particles) {
+          Redraw(display_isosurface);
+        }
         if (display_brownian_path) {
           window_.draw(brownian_path);
         }
