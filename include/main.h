@@ -3,12 +3,10 @@
 #pragma once
 
 // Window size
-#define WIDTH 1400
-#define HEIGHT 1400
+#define WINDOW_SIZE 1400
 
 // Simulation box size
-#define BOX_WIDTH WIDTH * 0.6
-#define BOX_HEIGHT HEIGHT * 0.6
+#define BOX_SIZE 0.6 * WINDOW_SIZE
 
 // Physical characteristics
 #define SPEED_UNIT 1000

@@ -89,9 +89,9 @@ double Particle::TimeToHit(const Particle& that) const {
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitVerticalWall() const {
   if (vx_ > 0) {
-    return (0.8 * WIDTH - rx_ - radius_) / vx_;
+    return (0.8 * WINDOW_SIZE - rx_ - radius_) / vx_;
   } else if (vx_ < 0) {
-    return (radius_ - rx_ + 0.2 * WIDTH) / vx_;
+    return (radius_ - rx_ + 0.2 * WINDOW_SIZE) / vx_;
   } else {
     return INFINITY;
   }
@@ -101,9 +101,9 @@ double Particle::TimeToHitVerticalWall() const {
 // wall, assuming no intervening collisions.
 double Particle::TimeToHitHorizontalWall() const {
   if (vy_ > 0) {
-    return (0.8 * HEIGHT - ry_ - radius_) / vy_;
+    return (0.8 * WINDOW_SIZE - ry_ - radius_) / vy_;
   } else if (vy_ < 0) {
-    return (radius_ - ry_ + 0.2 * HEIGHT) / vy_;
+    return (radius_ - ry_ + 0.2 * WINDOW_SIZE) / vy_;
   } else {
     return INFINITY;
   }

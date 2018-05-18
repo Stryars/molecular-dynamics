@@ -16,7 +16,7 @@
 
 // Initializes a system with the specified collection of particles.
 CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
-    window_ {sf::VideoMode(WIDTH, HEIGHT),
+    window_ {sf::VideoMode(WINDOW_SIZE, WINDOW_SIZE),
         "Molecular Dynamics", sf::Style::Titlebar | sf::Style::Close},
     Hz_ {0.5},
     time_ {0},
@@ -74,16 +74,16 @@ void CollisionSystem::RegenerateEvents() {
 // Redraws all particles.
 void CollisionSystem::Redraw(bool display_isosurface) {
   if (display_isosurface == true && window_.isOpen()) {
-    sf::Uint8 pixels[static_cast<int>(BOX_WIDTH * BOX_HEIGHT * 4)];
+    sf::Uint8 pixels[static_cast<int>(BOX_SIZE * BOX_SIZE * 4)];
 
     sf::Texture texture;
-    texture.create(BOX_WIDTH, BOX_HEIGHT);
+    texture.create(BOX_SIZE, BOX_SIZE);
 
     sf::Sprite sprite;
 
-    for (auto x {0}; x < BOX_WIDTH; ++x) {
-      for (auto y {0}; y < BOX_HEIGHT; ++y) {
-        int index {static_cast<int>((x + y * BOX_WIDTH) * 4)};
+    for (auto x {0}; x < BOX_SIZE; ++x) {
+      for (auto y {0}; y < BOX_SIZE; ++y) {
+        int index {static_cast<int>((x + y * BOX_SIZE) * 4)};
         float sum {0};
         for (const auto& particle : particles_) {
           double rx {particle.GetRx()}, ry {particle.GetRy()};
@@ -223,21 +223,21 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
   }
   DrawText(font,
       "FPS: " + std::to_string(fps), 20,
-      sf::Color::White, WIDTH - 100, 0);
+      sf::Color::White, WINDOW_SIZE - 100, 0);
 
   DrawText(font,
       "Speed scale", 20,
-      sf::Color::White, WIDTH - 200, 340);
+      sf::Color::White, WINDOW_SIZE - 200, 340);
 
   sf::VertexArray speed_scale(sf::Lines);
   for (auto i {0}; i < 600; i += 2) {
     for (auto j {0}; j < 2; ++j) {
       float r {0}, g{0}, b {0};
       HSVtoRGB(300 - i / 2, 1.0, 1.0, &r, &g, &b);
-      speed_scale.append(sf::Vertex(sf::Vector2f(WIDTH - 160, 400 + i + j),
-          sf::Color(r * 255, g * 255, b * 255)));
-      speed_scale.append(sf::Vertex(sf::Vector2f(WIDTH - 100, 400 + i + j),
-          sf::Color(r * 255, g * 255, b * 255)));
+      speed_scale.append(sf::Vertex(sf::Vector2f(WINDOW_SIZE - 160,
+          400 + i + j), sf::Color(r * 255, g * 255, b * 255)));
+      speed_scale.append(sf::Vertex(sf::Vector2f(WINDOW_SIZE - 100,
+          400 + i + j), sf::Color(r * 255, g * 255, b * 255)));
     }
   }
 
@@ -274,7 +274,8 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
       sf::Color::White, 0, 90);
 
   double pressure {(2.0 / 3.0) * average_kinetic_energy * particles_.size()
-      / (HEIGHT * 0.6 * DISTANCE_UNIT * WIDTH * 0.6 * DISTANCE_UNIT)};
+      / (WINDOW_SIZE * 0.6 * DISTANCE_UNIT
+      * WINDOW_SIZE * 0.6 * DISTANCE_UNIT)};
   std::ostringstream streamPress;
   streamPress << pressure;
   std::string strPress = streamPress.str();
@@ -286,7 +287,7 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
   for (const auto& particle : particles_) {
     particles_area += M_PI * pow(particle.GetRadius(), 2);
   }
-  double packing_factor {particles_area / (BOX_WIDTH * BOX_HEIGHT)};
+  double packing_factor {particles_area / (BOX_SIZE * BOX_SIZE)};
   DrawText(font,
       "Packing factor: " + std::to_string(packing_factor * 100) + "%", 20,
       sf::Color::White, 0, 150);
@@ -315,16 +316,16 @@ void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
 
   for (auto i {0}; i < number_of_buckets; ++i) {
     sf::RectangleShape line(sf::Vector2f(1000 * bucket_size / 4,
-        speed_histogram[i] * 3 * BOX_HEIGHT / particles_.size()));
+        speed_histogram[i] * 3 * BOX_SIZE / particles_.size()));
     line.rotate(180);
     line.setFillColor(sf::Color::Red);
-    line.setPosition(1000 * i * bucket_size / 2, HEIGHT - 5);
+    line.setPosition(1000 * i * bucket_size / 2, WINDOW_SIZE - 5);
     window_.draw(line);
   }
 
-  sf::RectangleShape horizontal_line(sf::Vector2f(WIDTH, 5));
+  sf::RectangleShape horizontal_line(sf::Vector2f(WINDOW_SIZE, 5));
   horizontal_line.setFillColor(sf::Color::White);
-  horizontal_line.setPosition(0, HEIGHT - 5);
+  horizontal_line.setPosition(0, WINDOW_SIZE - 5);
   window_.draw(horizontal_line);
 
   // Maxwell-Boltzmann probability density function
@@ -339,7 +340,7 @@ void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
         * exp(-mass * pow(i * bucket_size * SPEED_UNIT, 2)
         / (2 * boltzmann_constant * temperature))};
     maxwell_boltzmann.append(sf::Vector2f(1000 * i * bucket_size / 2,
-        HEIGHT - 5 - 100 * y));
+        WINDOW_SIZE - 5 - 100 * y));
   }
 
   window_.draw(maxwell_boltzmann);
@@ -352,8 +353,8 @@ int CollisionSystem::Simulate() {
   std::mt19937 rng {std::random_device()()};
   std::uniform_real_distribution<double> random_speed(-1, 1);
   std::uniform_real_distribution<double> random_position(
-        (WIDTH - BOX_WIDTH) / 2 + particles_[0].GetRadius(),
-        (WIDTH - BOX_WIDTH) / 2 + BOX_WIDTH - particles_[0].GetRadius());
+        (WINDOW_SIZE - BOX_SIZE) / 2 + particles_[0].GetRadius(),
+        (WINDOW_SIZE - BOX_SIZE) / 2 + BOX_SIZE - particles_[0].GetRadius());
 
   // Booleans for displaying isosurfaces, particles, brownian motion, etc.
   bool display_isosurface {false};
@@ -375,8 +376,10 @@ int CollisionSystem::Simulate() {
   }
 
   // Initialize the box
-  sf::RectangleShape simulation_box(sf::Vector2f(WIDTH * 0.6, HEIGHT * 0.6));
-  simulation_box.setPosition(WIDTH * 0.2, HEIGHT * 0.2);
+  sf::RectangleShape simulation_box(sf::Vector2f(BOX_SIZE,
+      BOX_SIZE));
+  simulation_box.setPosition((WINDOW_SIZE - BOX_SIZE) / 2,
+      (WINDOW_SIZE - BOX_SIZE) / 2);
   simulation_box.setFillColor(sf::Color::Black);
   simulation_box.setOutlineThickness(5);
   simulation_box.setOutlineColor(sf::Color::White);
