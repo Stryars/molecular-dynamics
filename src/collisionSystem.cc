@@ -314,12 +314,15 @@ void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
     speed_histogram[bucket]++;
   }
 
+  auto max_particles = std::max_element(speed_histogram.begin(),
+      speed_histogram.end());
+
   for (auto i {0}; i < number_of_buckets; ++i) {
     sf::RectangleShape line(sf::Vector2f(1000 * bucket_size / 4,
-        speed_histogram[i] * 3 * BOX_SIZE / particles_.size()));
+        speed_histogram[i] * 270 / *max_particles));
     line.rotate(180);
     line.setFillColor(sf::Color::Red);
-    line.setPosition(1000 * i * bucket_size / 2, WINDOW_SIZE - 5);
+    line.setPosition(1000 * (i + 1) * bucket_size / 2, WINDOW_SIZE - 5);
     window_.draw(line);
   }
 
@@ -334,13 +337,13 @@ void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
   double mass {MASS_UNIT};
   double temperature {(2.0 / 3.0)
       * average_kinetic_energy / boltzmann_constant};
-  for (int i {0}; i < number_of_buckets; ++i) {
+  for (double i {0}; i < number_of_buckets; i += 0.25) {
     double y {pow(mass / (2 * M_PI * boltzmann_constant * temperature), 3 / 2)
         * 4 * M_PI * pow(i * bucket_size * SPEED_UNIT, 2)
         * exp(-mass * pow(i * bucket_size * SPEED_UNIT, 2)
         / (2 * boltzmann_constant * temperature))};
     maxwell_boltzmann.append(sf::Vector2f(1000 * i * bucket_size / 2,
-        WINDOW_SIZE - 5 - 100 * y));
+        WINDOW_SIZE - 5 - 150 * y));
   }
 
   window_.draw(maxwell_boltzmann);
