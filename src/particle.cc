@@ -72,10 +72,10 @@ double Particle::TimeToHit(const Particle& that) const {
 
   // Distance between particles centers
   double sigma {radius_ + that.radius_};
-  // if (drdr - sigma * sigma < 0) {
-  //   printf("Overlapping particles: %ld.\n", time(NULL));
-  //   return INFINITY;
-  // }
+  if (drdr - sigma * sigma < 0) {
+    printf("Overlapping particles: %ld.\n", time(NULL));
+    return INFINITY;
+  }
 
   double d {(dvdr * dvdr) - dvdv * (drdr - sigma * sigma)};
   if (d < 0) {
@@ -124,7 +124,7 @@ void Particle::BounceOff(Particle* that) {
   double dist {radius_ + that->radius_};
 
   // Magnitude of normal force
-  double magnitude {2 * mass_ * that->mass_ * dvdr /
+  double magnitude {(1 + FRICTION) * mass_ * that->mass_ * dvdr /
     ((mass_ + that->mass_) * dist)};
 
   // Normal force in x and y directions
@@ -132,10 +132,10 @@ void Particle::BounceOff(Particle* that) {
   double fy {magnitude * dy / dist};
 
   // Update velocities according to normal force
-  vx_ += FRICTION * fx / mass_;
-  vy_ += FRICTION * fy / mass_;
-  that->vx_ -= FRICTION * fx / that->mass_;
-  that->vy_ -= FRICTION * fy / that->mass_;
+  vx_ += fx / mass_;
+  vy_ += fy / mass_;
+  that->vx_ -= fx / that->mass_;
+  that->vy_ -= fy / that->mass_;
 
   // Update collision counts
   collisions_count_++;

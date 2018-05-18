@@ -14,7 +14,7 @@
 #define SPEED_UNIT 1000
 #define DISTANCE_UNIT 188e-12
 #define MASS_UNIT 6.6335209e-26
-#define FRICTION 0.99
+#define FRICTION 1
 
 // Tolerance
 #define EPSILON 0.001

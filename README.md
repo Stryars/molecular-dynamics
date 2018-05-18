@@ -47,4 +47,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-- Done with help from [_Algortihms, 4th Edition_](https://algs4.cs.princeton.edu/home/).
+Done with help from [_Algortihms, 4th Edition_](https://algs4.cs.princeton.edu/home/).
