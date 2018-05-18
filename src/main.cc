@@ -36,6 +36,8 @@ int main(int argc, char* argv[]) {
   // Initialization of the particles collection
   std::vector<Particle> particles {};
 
+  // particles.push_back(Particle(0, 400, 500, 0, 0, particle_radius, 1, sf::Color::Red));
+
   // Initialize particles in a simple square crystal.
   double x {0.2 * WINDOW_SIZE + particle_radius * 2}, y {0};
   while (x + particle_radius < 0.8 * WINDOW_SIZE) {

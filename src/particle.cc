@@ -87,11 +87,41 @@ double Particle::TimeToHit(const Particle& that) const {
 
 // Returns the amount of time for this particle to collide with a vertical
 // wall, assuming no intervening collisions.
-double Particle::TimeToHitVerticalWall() const {
-  if (vx_ > 0) {
-    return (0.8 * WINDOW_SIZE - rx_ - radius_) / vx_;
+double Particle::TimeToHitVerticalWall(double wall_size, double wall_speed)
+    const {
+  if (vx_ == 0) {
+    if (wall_speed < 0) {
+      return fmin(
+          ((WINDOW_SIZE - wall_size) / 2 + wall_size - rx_ - radius_)
+          / -wall_speed,
+          (rx_ - radius_ - (WINDOW_SIZE - wall_size) / 2) / -wall_speed);
+    } else {
+      return INFINITY;
+    }
+  } else if (vx_ > 0) {
+    if (wall_speed >= vx_) {
+      return INFINITY;
+    } else if (-wall_speed > vx_) {
+      return fmin(
+          (radius_ - rx_ + (WINDOW_SIZE - wall_size) / 2) / (vx_ - wall_speed),
+          ((WINDOW_SIZE - wall_size) / 2 + wall_size - rx_ - radius_)
+          / (vx_ - wall_speed));
+    } else {
+      return ((WINDOW_SIZE - wall_size) / 2 + wall_size - rx_ - radius_)
+          / (vx_ - wall_speed);
+    }
   } else if (vx_ < 0) {
-    return (radius_ - rx_ + 0.2 * WINDOW_SIZE) / vx_;
+    if (wall_speed >= -vx_) {
+      return INFINITY;
+    } else if (wall_speed < vx_) {
+      return fmin(
+          (radius_ - rx_ + (WINDOW_SIZE - wall_size) / 2) / (vx_ + wall_speed),
+          ((WINDOW_SIZE - wall_size) / 2 + wall_size - rx_ - radius_)
+          / (vx_ + wall_speed));
+    } else {
+      return (radius_ - rx_ + (WINDOW_SIZE - wall_size) / 2)
+          / (vx_ + wall_speed);
+    }
   } else {
     return INFINITY;
   }
@@ -99,11 +129,41 @@ double Particle::TimeToHitVerticalWall() const {
 
 // Returns the amount of time for this particle to collide with a horizontal
 // wall, assuming no intervening collisions.
-double Particle::TimeToHitHorizontalWall() const {
-  if (vy_ > 0) {
-    return (0.8 * WINDOW_SIZE - ry_ - radius_) / vy_;
+double Particle::TimeToHitHorizontalWall(double wall_size, double wall_speed)
+    const {
+  if (vy_ == 0) {
+    if (wall_speed < 0) {
+      return fmin(
+          ((WINDOW_SIZE - wall_size) / 2 + wall_size - ry_ - radius_)
+          / -wall_speed,
+          (ry_ - (WINDOW_SIZE - wall_size) / 2 - radius_) / -wall_speed);
+    } else {
+      return INFINITY;
+    }
+  } else if (vy_ > 0) {
+    if (wall_speed >= vy_) {
+      return INFINITY;
+    } else if (-wall_speed > vy_) {
+      return fmin(
+          (radius_ - ry_ + (WINDOW_SIZE - wall_size) / 2) / (vy_ - wall_speed),
+          ((WINDOW_SIZE - wall_size) / 2 + wall_size - ry_ - radius_)
+          / (vy_ - wall_speed));
+    } else {
+      return ((WINDOW_SIZE - wall_size) / 2 + wall_size - ry_ - radius_)
+          / (vy_ - wall_speed);
+    }
   } else if (vy_ < 0) {
-    return (radius_ - ry_ + 0.2 * WINDOW_SIZE) / vy_;
+    if (wall_speed >= -vy_) {
+      return INFINITY;
+    } else if (wall_speed < vy_) {
+      return fmin(
+          (radius_ - ry_ + (WINDOW_SIZE - wall_size) / 2) / (vy_ + wall_speed),
+          ((WINDOW_SIZE - wall_size) / 2 + wall_size - ry_ - radius_)
+          / (vy_ + wall_speed));
+    } else {
+      return (radius_ - ry_ + (WINDOW_SIZE - wall_size) / 2)
+          / (vy_ + wall_speed);
+    }
   } else {
     return INFINITY;
   }
@@ -143,15 +203,35 @@ void Particle::BounceOff(Particle* that) {
 }
 
 // Updates the velocity of this particle upon collision with a vertical wall.
-void Particle::BounceOffVerticalWall() {
-  vx_ = -vx_;
+void Particle::BounceOffVerticalWall(double wall_speed) {
+  if (vx_ > 0 && rx_ > WINDOW_SIZE / 2) {
+    vx_ = -vx_ + 2 * wall_speed;
+  } else if (vx_ > 0 && rx_ < WINDOW_SIZE / 2) {
+    vx_ += -2 * wall_speed;
+  } else if (vx_ < 0 && rx_ < WINDOW_SIZE / 2) {
+    vx_ = -vx_ - 2 * wall_speed;
+  } else if (vx_ < 0 && rx_ > WINDOW_SIZE / 2) {
+    vx_ += 2 * wall_speed;
+  } else {
+    vx_ = 2 * wall_speed;
+  }
   collisions_count_++;
 }
 
 // Updates the velocity of this particle upon collision with a
 // horizontal wall.
-void Particle::BounceOffHorizontalWall() {
-  vy_ = -vy_;
+void Particle::BounceOffHorizontalWall(double wall_speed) {
+  if (vy_ > 0 && ry_ > WINDOW_SIZE / 2) {
+    vy_ = -vy_ + 2 * wall_speed;
+  } else if (vy_ > 0 && ry_ < WINDOW_SIZE / 2) {
+    vy_ += -2 * wall_speed;
+  } else if (vy_ < 0 && ry_ < WINDOW_SIZE / 2) {
+    vy_ = -vy_ - 2 * wall_speed;
+  } else if (vy_ < 0 && ry_ > WINDOW_SIZE / 2) {
+    vy_ += 2 * wall_speed;
+  } else {
+    vy_ = 2 * wall_speed;
+  }
   collisions_count_++;
 }
 
@@ -190,9 +270,19 @@ double Particle::GetRx() const {
   return rx_;
 }
 
+// Sets the rx coordinate.
+void Particle::SetRx(double rx) {
+  rx_ = rx;
+}
+
 // Returns the ry coordinate.
 double Particle::GetRy() const {
   return ry_;
+}
+
+// Sets the ry coordinate.
+void Particle::SetRy(double ry) {
+  ry_ = ry;
 }
 
 // Returns the particle's birthdate.
