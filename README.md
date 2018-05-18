@@ -30,11 +30,11 @@ make
 
 ## Running a simulation
 
-The program takes two arguments: the particles' radius and the empty space between the particles.
+The program takes three arguments: the particles' radius, the empty space between the particles and the friction.
 
 Run the simulation with:
 ```
-./bin/mdsim radius spacing
+./bin/mdsim radius spacing friction
 ```
 
 ## Authors
@@ -47,4 +47,5 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-Done with help from [_Algortihms, 4th Edition_](https://algs4.cs.princeton.edu/home/).
+- Done with help from [_Algortihms, 4th Edition_](https://algs4.cs.princeton.edu/home/).
+- **Jan Winkler** - <winkler@cs.uni-bremen.de> - for the hsv2rgb function.

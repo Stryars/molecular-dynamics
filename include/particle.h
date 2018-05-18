@@ -41,8 +41,8 @@ class Particle {
   double TimeToHitHorizontalWall(double wall_size, double wall_speed) const;
 
   // Updates the velocity of this particle and the specified particle according
-  // to the laws of elastic collision.
-  void BounceOff(Particle* that);
+  // to the laws of elastic (or inelastic, with friction) collision.
+  void BounceOff(Particle* that, double friction);
 
   // Updates the velocity of this particle upon collision with a vertical wall.
   void BounceOffVerticalWall(double wall_speed);

@@ -13,7 +13,7 @@
 class CollisionSystem {
  public:
   // Initializes a system with the specified collection of particles.
-  explicit CollisionSystem(std::vector<Particle> particles);
+  explicit CollisionSystem(std::vector<Particle> particles, double friction);
 
   // Empty constructor: prevents a segmentation fault.
   ~CollisionSystem();
@@ -42,7 +42,8 @@ class CollisionSystem {
       double wall_speed, sf::Time frameTime);
 
   // Display the velocity histogram.
-  void DisplayVelocityHistogram(double average_kinetic_energy);
+  void DisplayVelocityHistogram(double horizontal_scale,
+      double average_kinetic_energy);
 
   // Simulates the system of particles for the specified amount of time.
   int Simulate();
@@ -62,4 +63,7 @@ class CollisionSystem {
 
   // Array of particles
   std::vector<Particle> particles_;
+
+  // Friction coefficient
+  double friction_;
 };

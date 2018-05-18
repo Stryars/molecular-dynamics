@@ -171,7 +171,7 @@ double Particle::TimeToHitHorizontalWall(double wall_size, double wall_speed)
 
 // Updates the velocity of this particle and the specified particle according
 // to the laws of elastic collision.
-void Particle::BounceOff(Particle* that) {
+void Particle::BounceOff(Particle* that, double friction) {
   double dx {that->rx_ - rx_};
   double dy {that->ry_ - ry_};
   double dvx {that->vx_ - vx_};
@@ -184,7 +184,7 @@ void Particle::BounceOff(Particle* that) {
   double dist {radius_ + that->radius_};
 
   // Magnitude of normal force
-  double magnitude {(1 + FRICTION) * mass_ * that->mass_ * dvdr /
+  double magnitude {(1 + friction) * mass_ * that->mass_ * dvdr /
     ((mass_ + that->mass_) * dist)};
 
   // Normal force in x and y directions

@@ -7,5 +7,15 @@ build
 # Ignore any executables
 bin/*
 
+# LaTeX files
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.bbl
+*.blg
+*.out
+
 # Misc
 .DS_Store

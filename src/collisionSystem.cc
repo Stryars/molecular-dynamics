@@ -15,12 +15,14 @@
 #include "include/hsv2rgb.h"
 
 // Initializes a system with the specified collection of particles.
-CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
+CollisionSystem::CollisionSystem(std::vector<Particle> particles,
+    double friction) :
     window_ {sf::VideoMode(WINDOW_SIZE, WINDOW_SIZE),
         "Molecular Dynamics", sf::Style::Titlebar | sf::Style::Close},
     Hz_ {0.5},
     time_ {0},
-    particles_ {particles} {
+    particles_ {particles},
+    friction_ {friction} {
   // Initialize the window
   window_.setFramerateLimit(60);
 
@@ -198,13 +200,21 @@ void CollisionSystem::DisplayHelp(const sf::Font& font) {
       sf::Color::White, 0, 240);
 
   DrawText(font,
+      "Press the Up and Down arrows to change the size of the simulation box.",
+      20, sf::Color::White, 0, 270);
+
+  DrawText(font,
+      "Press the Left and Right arrows to change the scale of the histogram.",
+      20, sf::Color::White, 0, 300);
+
+  DrawText(font,
       "Press Escape to quit the simulation.", 20,
-      sf::Color::White, 0, 270);
+      sf::Color::White, 0, 330);
 
   DrawText(font,
       "The histogram displays the real velocity distribution in red\n"
       "and the Maxwell-Boltzmann probability density function in white.", 20,
-      sf::Color::White, 0, 400);
+      sf::Color::White, 0, 450);
 
   window_.display();
 
@@ -299,17 +309,26 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
       sf::Color::White, 600, 0);
 
   DrawText(font,
-      "Priority queue size:" + std::to_string(pq_.size()) , 20,
+      "Priority queue size: " + std::to_string(pq_.size()) , 20,
       sf::Color::White, 600, 30);
 
   DrawText(font,
-      "Wall speed:" + std::to_string(SPEED_UNIT * wall_speed / 2) , 20,
+      "Wall speed: " + std::to_string(SPEED_UNIT * wall_speed / 2) , 20,
       sf::Color::White, 600, 60);
 }
 
 // Display the velocity histogram.
-void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
-  const int max_speed {20};
+void CollisionSystem::DisplayVelocityHistogram(double horizontal_scale,
+    double average_kinetic_energy) {
+  int max_speed {0};
+  for (const auto& particle : particles_) {
+    if (particle.GetSpeed() > max_speed) {
+      max_speed = particle.GetSpeed();
+    }
+  }
+
+  max_speed++;
+  // const int max_speed {20};
   const float bucket_size {0.02};
   int number_of_buckets {static_cast<int>(ceil(max_speed / bucket_size))};
 
@@ -328,7 +347,7 @@ void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
         speed_histogram[i] * 270 / *max_particles));
     line.rotate(180);
     line.setFillColor(sf::Color::Red);
-    line.setPosition(1000 * (i + 1) * bucket_size / 2, WINDOW_SIZE - 5);
+    line.setPosition(horizontal_scale * (i + 1) * bucket_size / 2, WINDOW_SIZE - 5);
     window_.draw(line);
   }
 
@@ -348,7 +367,7 @@ void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
         * 4 * M_PI * pow(i * bucket_size * SPEED_UNIT, 2)
         * exp(-mass * pow(i * bucket_size * SPEED_UNIT, 2)
         / (2 * boltzmann_constant * temperature))};
-    maxwell_boltzmann.append(sf::Vector2f(1000 * i * bucket_size / 2,
+    maxwell_boltzmann.append(sf::Vector2f(horizontal_scale * i * bucket_size / 2,
         WINDOW_SIZE - 5 - 150 * y));
   }
 
@@ -370,6 +389,9 @@ int CollisionSystem::Simulate() {
   bool display_particles {true};
   bool display_brownian_path {false};
   bool display_simulation {true};
+
+  // Histogram horizontal scale
+  double histogram_scale {1000};
 
   // Brownian motion path
   // Storing an index and not a pointer to the particle because of heap
@@ -500,6 +522,12 @@ int CollisionSystem::Simulate() {
           } else if (event.key.code == sf::Keyboard::Up) {
             wall_speed += 0.1;
             RegenerateEvents(wall_size, wall_speed);
+          // Right: zoom in on histogram
+          } else if (event.key.code == sf::Keyboard::Right) {
+            histogram_scale += 100;
+          // Left : zoom out on histogram
+          } else if (event.key.code == sf::Keyboard::Left) {
+            histogram_scale -= 100;
           }
           break;
         default:
@@ -528,6 +556,11 @@ int CollisionSystem::Simulate() {
     // or width of the box. Thus, when changing e.g. the width, the speed gets
     // "divided by two": half of it accounts for the left side, the other half
     // for the right side.
+
+    if (wall_size > WINDOW_SIZE) {
+      wall_size = WINDOW_SIZE;
+      wall_speed = 0;
+    }
     wall_size += 2 * wall_speed * (e.GetTime() - time_);
     simulation_box.setSize(sf::Vector2f(wall_size, wall_size));
     simulation_box.setPosition((WINDOW_SIZE - wall_size) / 2,
@@ -539,20 +572,20 @@ int CollisionSystem::Simulate() {
       // Ensures the particle stays inside the simulation box. Prevents floating
       // point errors.
       if (particle.GetRx() - particle.GetRadius()
-          < (WINDOW_SIZE - wall_size) / 2) {
+          < (WINDOW_SIZE - wall_size) / 2 - EPSILON) {
         particle.SetRx((WINDOW_SIZE - wall_size) / 2 + particle.GetRadius());
       }
       if (particle.GetRx() + particle.GetRadius()
-          > (WINDOW_SIZE - wall_size) / 2 + wall_size) {
+          > (WINDOW_SIZE - wall_size) / 2 + wall_size + EPSILON) {
         particle.SetRx((WINDOW_SIZE - wall_size) / 2 + wall_size
             - particle.GetRadius());
       }
       if (particle.GetRy() - particle.GetRadius()
-          < (WINDOW_SIZE - wall_size) / 2) {
+          < (WINDOW_SIZE - wall_size) / 2 - EPSILON) {
         particle.SetRy((WINDOW_SIZE - wall_size) / 2 + particle.GetRadius());
       }
       if (particle.GetRy() + particle.GetRadius()
-          > (WINDOW_SIZE - wall_size) / 2 + wall_size) {
+          > (WINDOW_SIZE - wall_size) / 2 + wall_size + EPSILON) {
         particle.SetRy((WINDOW_SIZE - wall_size) / 2 + wall_size
             - particle.GetRadius());
       }
@@ -579,7 +612,7 @@ int CollisionSystem::Simulate() {
     switch (event_type) {
       // Particle-particle collision
       case Event::Type::kParticleParticle:
-        a->BounceOff(b);
+        a->BounceOff(b, friction_);
         collisions++;
         break;
       // Particle-vertical wall collision
@@ -600,7 +633,7 @@ int CollisionSystem::Simulate() {
         DisplayCharacteristics(source_code_pro, elapsed_time, collisions,
             average_kinetic_energy, wall_size, wall_speed, frameTime);
 
-        DisplayVelocityHistogram(average_kinetic_energy);
+        DisplayVelocityHistogram(histogram_scale, average_kinetic_energy);
 
         if (display_simulation) {
           window_.draw(simulation_box);

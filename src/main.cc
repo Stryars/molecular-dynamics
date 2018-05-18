@@ -10,9 +10,9 @@
 #include "include/collisionSystem.h"
 
 int main(int argc, char* argv[]) {
-  if (argc != 3) {
-    printf("Please enter the particle radius and space between the "
-    "particles.\n");
+  if (argc != 4) {
+    printf("Please enter the particle radius, the space between the "
+    "particles and the friction.\n");
     return 1;
   }
 
@@ -30,6 +30,13 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  double friction {0.0};
+  std::istringstream ss3 {argv[3]};
+  if (!(ss3 >> friction)) {
+    std::cerr << "Invalid number " << argv[3] << '\n';
+    return 1;
+  }
+
   std::mt19937 rng {std::random_device()()};
   std::uniform_real_distribution<double> random_speed(-1, 1);
 
@@ -39,10 +46,10 @@ int main(int argc, char* argv[]) {
   // particles.push_back(Particle(0, 400, 500, 0, 0, particle_radius, 1, sf::Color::Red));
 
   // Initialize particles in a simple square crystal.
-  double x {0.2 * WINDOW_SIZE + particle_radius * 2}, y {0};
-  while (x + particle_radius < 0.8 * WINDOW_SIZE) {
-    y = 0.2 * WINDOW_SIZE + particle_radius * 2;
-    while (y + particle_radius < 0.8 * WINDOW_SIZE) {
+  double x {(WINDOW_SIZE - BOX_SIZE) / 2 + particle_radius}, y {0};
+  while (x + particle_radius < (WINDOW_SIZE - BOX_SIZE) / 2 + BOX_SIZE) {
+    y = (WINDOW_SIZE - BOX_SIZE) / 2 + particle_radius;
+    while (y + particle_radius < (WINDOW_SIZE - BOX_SIZE) / 2 + BOX_SIZE) {
       particles.push_back(Particle(0, x, y,
           random_speed(rng), random_speed(rng),
           particle_radius,
@@ -56,7 +63,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Initialization of the collision system
-  CollisionSystem system {particles};
+  CollisionSystem system {particles, friction};
 
   // Initialization of the simulation
   system.Simulate();

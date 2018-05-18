@@ -2,6 +2,7 @@
 
 - [ ] Implement multi-particles collisions.
 - [ ] Change the shape of the box.
+- [ ] Use a red-black tree instead of a priority queue.
 - [x] Clean the CollisionSystem::DisplayCharacteristics function.
 - [x] Add a brownian motion tracker.
 - [x] Add the Maxwell-Boltzmann PDF on the velocity histogram.
