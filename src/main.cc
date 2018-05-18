@@ -36,22 +36,24 @@ int main(int argc, char* argv[]) {
   // Initialization of the particles collection
   std::vector<Particle> particles {};
 
+  particles.push_back(Particle(0, 600, 500, 0, 0, particle_radius, 1, sf::Color::Red));
+
   // Initialize particles in a simple square crystal.
-  double x {0.2 * WINDOW_SIZE + particle_radius * 2}, y {0};
-  while (x + particle_radius < 0.8 * WINDOW_SIZE) {
-    y = 0.2 * WINDOW_SIZE + particle_radius * 2;
-    while (y + particle_radius < 0.8 * WINDOW_SIZE) {
-      particles.push_back(Particle(0, x, y,
-          random_speed(rng), random_speed(rng),
-          particle_radius,
-          1,
-          sf::Color::Red));
-
-      y += 2 * particle_radius + space_between_particles;
-    }
-
-    x += 2 * particle_radius + space_between_particles;
-  }
+  // double x {0.2 * WINDOW_SIZE + particle_radius * 2}, y {0};
+  // while (x + particle_radius < 0.8 * WINDOW_SIZE) {
+  //   y = 0.2 * WINDOW_SIZE + particle_radius * 2;
+  //   while (y + particle_radius < 0.8 * WINDOW_SIZE) {
+  //     particles.push_back(Particle(0, x, y,
+  //         random_speed(rng), random_speed(rng),
+  //         particle_radius,
+  //         1,
+  //         sf::Color::Red));
+  //
+  //     y += 2 * particle_radius + space_between_particles;
+  //   }
+  //
+  //   x += 2 * particle_radius + space_between_particles;
+  // }
 
   // Initialization of the collision system
   CollisionSystem system {particles};

@@ -26,7 +26,7 @@ CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
 
   // Initialize priority queue with collision events and redraw event
   for (auto& particle : particles_) {
-    Predict(&particle);
+    Predict(&particle, BOX_SIZE, 0);
   }
 
   // First redraw event
@@ -37,7 +37,8 @@ CollisionSystem::CollisionSystem(std::vector<Particle> particles) :
 CollisionSystem::~CollisionSystem() {}
 
 // Updates priority queue with all new events for particle a.
-void CollisionSystem::Predict(Particle* a) {
+void CollisionSystem::Predict(Particle* a, double wall_size,
+    double wall_speed) {
   if (a != nullptr) {
     // Particle-particle collisions
     for (auto& particle : particles_) {
@@ -49,11 +50,11 @@ void CollisionSystem::Predict(Particle* a) {
     }
 
     // Particle-wall collisions
-    double dtX {a->TimeToHitVerticalWall()};
+    double dtX {a->TimeToHitVerticalWall(wall_size, wall_speed)};
     if (dtX != INFINITY) {
       pq_.push(Event(Event::Type::kVerticalWall, time_ + dtX, a));
     }
-    double dtY {a->TimeToHitHorizontalWall()};
+    double dtY {a->TimeToHitHorizontalWall(wall_size, wall_speed)};
     if (dtY != INFINITY) {
       pq_.push(Event(Event::Type::kHorizontalWall, time_ + dtY, a));
     }
@@ -61,12 +62,12 @@ void CollisionSystem::Predict(Particle* a) {
 }
 
 // Empties the priority queue and predicts all future events.
-void CollisionSystem::RegenerateEvents() {
+void CollisionSystem::RegenerateEvents(double wall_size, double wall_speed) {
   while (!pq_.empty()) {
     pq_.pop();
   }
   for (auto& particle : particles_) {
-    Predict(&particle);
+    Predict(&particle, wall_size, wall_speed);
   }
   pq_.push(Event(Event::Type::kRedraw, time_));
 }
@@ -74,7 +75,8 @@ void CollisionSystem::RegenerateEvents() {
 // Redraws all particles.
 void CollisionSystem::Redraw(bool display_isosurface) {
   if (display_isosurface == true && window_.isOpen()) {
-    sf::Uint8 pixels[static_cast<int>(BOX_SIZE * BOX_SIZE * 4)];
+    constexpr int kPixelSize {static_cast<int>(BOX_SIZE * BOX_SIZE * 4)};
+    sf::Uint8 pixels[kPixelSize];
 
     sf::Texture texture;
     texture.create(BOX_SIZE, BOX_SIZE);
@@ -212,7 +214,7 @@ void CollisionSystem::DisplayHelp(const sf::Font& font) {
 // Displays physical quantities (temperature, pressure, etc.) and helper text.
 void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
     time_t elapsed_time, int collisions, double average_kinetic_energy,
-    sf::Time frameTime) {
+    double wall_size, sf::Time frameTime) {
   DrawText(font,
       "Press H to display/hide the help.", 20,
       sf::Color::White, 600, 60);
@@ -274,8 +276,8 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
       sf::Color::White, 0, 90);
 
   double pressure {(2.0 / 3.0) * average_kinetic_energy * particles_.size()
-      / (WINDOW_SIZE * 0.6 * DISTANCE_UNIT
-      * WINDOW_SIZE * 0.6 * DISTANCE_UNIT)};
+      / (wall_size * DISTANCE_UNIT
+      * wall_size * DISTANCE_UNIT)};
   std::ostringstream streamPress;
   streamPress << pressure;
   std::string strPress = streamPress.str();
@@ -287,7 +289,7 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
   for (const auto& particle : particles_) {
     particles_area += M_PI * pow(particle.GetRadius(), 2);
   }
-  double packing_factor {particles_area / (BOX_SIZE * BOX_SIZE)};
+  double packing_factor {particles_area / (wall_size * wall_size)};
   DrawText(font,
       "Packing factor: " + std::to_string(packing_factor * 100) + "%", 20,
       sf::Color::White, 0, 150);
@@ -303,7 +305,7 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
 
 // Display the velocity histogram.
 void CollisionSystem::DisplayVelocityHistogram(double average_kinetic_energy) {
-  const int max_speed {10};
+  const int max_speed {20};
   const float bucket_size {0.02};
   int number_of_buckets {static_cast<int>(ceil(max_speed / bucket_size))};
 
@@ -376,10 +378,10 @@ int CollisionSystem::Simulate() {
   }
 
   // Initialize the box
-  sf::RectangleShape simulation_box(sf::Vector2f(BOX_SIZE,
-      BOX_SIZE));
-  simulation_box.setPosition((WINDOW_SIZE - BOX_SIZE) / 2,
-      (WINDOW_SIZE - BOX_SIZE) / 2);
+  double wall_size {BOX_SIZE}, wall_speed {0.0};
+  sf::RectangleShape simulation_box(sf::Vector2f(wall_size, wall_size));
+  simulation_box.setPosition((WINDOW_SIZE - wall_size) / 2,
+      (WINDOW_SIZE - wall_size) / 2);
   simulation_box.setFillColor(sf::Color::Black);
   simulation_box.setOutlineThickness(5);
   simulation_box.setOutlineColor(sf::Color::White);
@@ -397,7 +399,7 @@ int CollisionSystem::Simulate() {
   window_.clear(sf::Color::Black);
 
   DisplayCharacteristics(source_code_pro, elapsed_time, collisions,
-      0, sf::Time {});
+      0, wall_size, sf::Time {});
   window_.draw(simulation_box);
   Redraw(display_isosurface);
 
@@ -436,7 +438,7 @@ int CollisionSystem::Simulate() {
 
             // The event priority queue is regenerated to account for the new
             // particle
-            RegenerateEvents();
+            RegenerateEvents(wall_size, wall_speed);
           // B: display brownian path
           } else if (event.key.code == sf::Keyboard::B) {
               display_brownian_path = !display_brownian_path;
@@ -476,13 +478,21 @@ int CollisionSystem::Simulate() {
               particles_.erase(particles_.begin() + pos);
             }
 
-            RegenerateEvents();
+            RegenerateEvents(wall_size, wall_speed);
           // S: display the simulation
           } else if (event.key.code == sf::Keyboard::S) {
             display_simulation = !display_simulation;
           // Space: pause the simulation
           } else if (event.key.code == sf::Keyboard::Space) {
             Pause(sf::Keyboard::Space);
+          // Down: wall speed down
+          } else if (event.key.code == sf::Keyboard::Down) {
+            wall_speed -= 0.1;
+            RegenerateEvents(wall_size, wall_speed);
+          // Up: wall speed up
+          } else if (event.key.code == sf::Keyboard::Up) {
+            wall_speed += 0.1;
+            RegenerateEvents(wall_size, wall_speed);
           }
           break;
         default:
@@ -507,6 +517,11 @@ int CollisionSystem::Simulate() {
 
     // Physical collision, update positions, simulation clock and
     // calculate average kinetic energy
+    wall_size += wall_speed * (e.GetTime() - time_);
+    simulation_box.setSize(sf::Vector2f(wall_size, wall_size));
+    simulation_box.setPosition((WINDOW_SIZE - wall_size) / 2,
+        (WINDOW_SIZE - wall_size) / 2);
+
     for (auto& particle : particles_) {
       particle.Move(e.GetTime() - time_);
 
@@ -537,12 +552,12 @@ int CollisionSystem::Simulate() {
         break;
       // Particle-vertical wall collision
       case Event::Type::kVerticalWall:
-        a->BounceOffVerticalWall();
+        a->BounceOffVerticalWall(wall_speed);
         collisions++;
         break;
       // Particle-horizontal wall collision
       case Event::Type::kHorizontalWall:
-        a->BounceOffHorizontalWall();
+        a->BounceOffHorizontalWall(wall_speed);
         collisions++;
         break;
       // Redraw event
@@ -550,8 +565,8 @@ int CollisionSystem::Simulate() {
         window_.clear(sf::Color::Black);
 
         elapsed_time = time(nullptr) - start_time;
-        DisplayCharacteristics(source_code_pro, elapsed_time,
-            collisions, average_kinetic_energy, frameTime);
+        DisplayCharacteristics(source_code_pro, elapsed_time, collisions,
+            average_kinetic_energy, wall_size, frameTime);
 
         DisplayVelocityHistogram(average_kinetic_energy);
 
@@ -597,8 +612,8 @@ int CollisionSystem::Simulate() {
     // }
 
     // Predict the next events for particles a and b
-    Predict(a);
-    Predict(b);
+    Predict(a, wall_size, wall_speed);
+    Predict(b, wall_size, wall_speed);
   }
 
   return 0;

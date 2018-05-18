@@ -34,22 +34,22 @@ class Particle {
 
   // Returns the amount of time for this particle to collide with a vertical
   // wall, assuming no intervening collisions.
-  double TimeToHitVerticalWall() const;
+  double TimeToHitVerticalWall(double wall_size, double wall_speed) const;
 
   // Returns the amount of time for this particle to collide with a horizontal
   // wall, assuming no intervening collisions.
-  double TimeToHitHorizontalWall() const;
+  double TimeToHitHorizontalWall(double wall_size, double wall_speed) const;
 
   // Updates the velocity of this particle and the specified particle according
   // to the laws of elastic collision.
   void BounceOff(Particle* that);
 
   // Updates the velocity of this particle upon collision with a vertical wall.
-  void BounceOffVerticalWall();
+  void BounceOffVerticalWall(double wall_speed);
 
   // Updates the velocity of this particle upon collision with a
   // horizontal wall.
-  void BounceOffHorizontalWall();
+  void BounceOffHorizontalWall(double wall_speed);
 
   // Returns the kinetic energy of this particle.
   double KineticEnergy() const;

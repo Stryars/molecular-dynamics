@@ -19,10 +19,10 @@ class CollisionSystem {
   ~CollisionSystem();
 
   // Updates priority queue with all new events for particle a.
-  void Predict(Particle* a);
+  void Predict(Particle* a, double wall_size, double wall_speed);
 
   // Empties the priority queue and predicts all future events.
-  void RegenerateEvents();
+  void RegenerateEvents(double wall_size, double wall_speed);
 
   // Redraws all particles.
   void Redraw(bool isosurface);
@@ -38,7 +38,8 @@ class CollisionSystem {
 
   // Displays physical quantities (temperature, pressure, etc.) and helper text.
   void DisplayCharacteristics(const sf::Font& font, time_t elapsed_time,
-      int collisions, double average_kinetic_energy, sf::Time frameTime);
+      int collisions, double average_kinetic_energy, double wall_size,
+      sf::Time frameTime);
 
   // Display the velocity histogram.
   void DisplayVelocityHistogram(double average_kinetic_energy);
