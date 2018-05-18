@@ -214,10 +214,10 @@ void CollisionSystem::DisplayHelp(const sf::Font& font) {
 // Displays physical quantities (temperature, pressure, etc.) and helper text.
 void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
     time_t elapsed_time, int collisions, double average_kinetic_energy,
-    double wall_size, sf::Time frameTime) {
+    double wall_size, double wall_speed, sf::Time frameTime) {
   DrawText(font,
       "Press H to display/hide the help.", 20,
-      sf::Color::White, 600, 60);
+      sf::Color::White, 600, 90);
 
   int fps {static_cast<int>(1 / (frameTime.asMicroseconds() * pow(10, -6)))};
   if (fps < 0) {
@@ -301,6 +301,10 @@ void CollisionSystem::DisplayCharacteristics(const sf::Font& font,
   DrawText(font,
       "Priority queue size:" + std::to_string(pq_.size()) , 20,
       sf::Color::White, 600, 30);
+
+  DrawText(font,
+      "Wall speed:" + std::to_string(SPEED_UNIT * wall_speed / 2) , 20,
+      sf::Color::White, 600, 60);
 }
 
 // Display the velocity histogram.
@@ -399,7 +403,7 @@ int CollisionSystem::Simulate() {
   window_.clear(sf::Color::Black);
 
   DisplayCharacteristics(source_code_pro, elapsed_time, collisions,
-      0, wall_size, sf::Time {});
+      0, wall_size, wall_speed, sf::Time {});
   window_.draw(simulation_box);
   Redraw(display_isosurface);
 
@@ -517,13 +521,38 @@ int CollisionSystem::Simulate() {
 
     // Physical collision, update positions, simulation clock and
     // calculate average kinetic energy
-    wall_size += wall_speed * (e.GetTime() - time_);
+    // 2 times wall_speed! wall_speed represents the speed of the whole height
+    // or width of the box. Thus, when changing e.g. the width, the speed gets
+    // "divided by two": half of it accounts for the left side, the other half
+    // for the right side.
+    wall_size += 2 * wall_speed * (e.GetTime() - time_);
     simulation_box.setSize(sf::Vector2f(wall_size, wall_size));
     simulation_box.setPosition((WINDOW_SIZE - wall_size) / 2,
         (WINDOW_SIZE - wall_size) / 2);
 
     for (auto& particle : particles_) {
       particle.Move(e.GetTime() - time_);
+
+      // Ensures the particle stays inside the simulation box. Prevents floating
+      // point errors.
+      if (particle.GetRx() - particle.GetRadius()
+          < (WINDOW_SIZE - wall_size) / 2) {
+        particle.SetRx((WINDOW_SIZE - wall_size) / 2 + particle.GetRadius());
+      }
+      if (particle.GetRx() + particle.GetRadius()
+          > (WINDOW_SIZE - wall_size) / 2 + wall_size) {
+        particle.SetRx((WINDOW_SIZE - wall_size) / 2 + wall_size
+            - particle.GetRadius());
+      }
+      if (particle.GetRy() - particle.GetRadius()
+          < (WINDOW_SIZE - wall_size) / 2) {
+        particle.SetRy((WINDOW_SIZE - wall_size) / 2 + particle.GetRadius());
+      }
+      if (particle.GetRy() + particle.GetRadius()
+          > (WINDOW_SIZE - wall_size) / 2 + wall_size) {
+        particle.SetRy((WINDOW_SIZE - wall_size) / 2 + wall_size
+            - particle.GetRadius());
+      }
 
       average_kinetic_energy += particle.KineticEnergy();
 
@@ -566,7 +595,7 @@ int CollisionSystem::Simulate() {
 
         elapsed_time = time(nullptr) - start_time;
         DisplayCharacteristics(source_code_pro, elapsed_time, collisions,
-            average_kinetic_energy, wall_size, frameTime);
+            average_kinetic_energy, wall_size, wall_speed, frameTime);
 
         DisplayVelocityHistogram(average_kinetic_energy);
 

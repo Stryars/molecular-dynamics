@@ -39,7 +39,7 @@ class CollisionSystem {
   // Displays physical quantities (temperature, pressure, etc.) and helper text.
   void DisplayCharacteristics(const sf::Font& font, time_t elapsed_time,
       int collisions, double average_kinetic_energy, double wall_size,
-      sf::Time frameTime);
+      double wall_speed, sf::Time frameTime);
 
   // Display the velocity histogram.
   void DisplayVelocityHistogram(double average_kinetic_energy);

@@ -15,4 +15,4 @@
 #define FRICTION 0.99
 
 // Tolerance
-#define EPSILON 0.001
+#define EPSILON 0.00001

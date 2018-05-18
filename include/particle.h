@@ -69,8 +69,14 @@ class Particle {
   // Returns the rx coordinate.
   double GetRx() const;
 
+  // Sets the rx coordinate.
+  void SetRx(double rx);
+
   // Returns the ry coordinate.
   double GetRy() const;
+
+  // Sets the ry coordinate.
+  void SetRy(double ry);
 
   // Returns the particle's birthdate.
   double GetBirthdate() const;
